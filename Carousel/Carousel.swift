@@ -153,6 +153,9 @@ class CarouselScrollView: UIScrollView {
         }
     }
     
+    private var autoScrollTimer:NSTimer?
+    private var autoScrollIncrease = true
+    
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -162,6 +165,13 @@ class CarouselScrollView: UIScrollView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         baseInit()
+    }
+    
+    deinit {
+        autoScrollTimer?.invalidate()
+        autoScrollTimer = nil
+        reusablePages.clear()
+        pageViews = []
     }
     
     private func baseInit() {
@@ -613,7 +623,9 @@ extension CarouselScrollView {
             }
             setContentOffset(offset, animated: animated)
         case .Loop:
-            setContentOffset(frameLoop(page).origin, animated: animated)
+            if Int(contentSize.width) > Int(frame.width) || Int(contentSize.height) > Int(frame.height) {
+                setContentOffset(frameLoop(page).origin, animated: animated)
+            }
         }
         updateVisiblePage()
     }
@@ -630,6 +642,43 @@ extension CarouselScrollView {
             return
         }
         scrollToPage(first.page - 1, animated: animated)
+    }
+}
+
+extension CarouselScrollView {
+    
+    func autoScrollNext() {
+        nextPage(true)
+    }
+    
+    func autoScrollPre() {
+        prePage(true)
+    }
+    
+    func autoScroll(timeInterval:NSTimeInterval, increase:Bool) {
+        autoScrollIncrease = increase
+        autoScrollTimer?.invalidate()
+        autoScrollTimer = NSTimer.scheduledTimerWithTimeInterval(
+            timeInterval,
+            target: self,
+            selector: increase ? #selector(self.autoScrollNext) : #selector(self.autoScrollPre),
+            userInfo: nil,
+            repeats: true)
+    }
+    
+    func stopAutoScroll() {
+        autoScrollTimer?.invalidate()
+        autoScrollTimer = nil
+    }
+    
+    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+        autoScrollTimer?.invalidate()
+    }
+    
+    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if let timer = autoScrollTimer {
+            autoScroll(timer.timeInterval, increase: autoScrollIncrease)
+        }
     }
 }
 

@@ -9,26 +9,21 @@
 import UIKit
 
 class ViewController: UIViewController, CarouselScrollViewDataSourse {
-    lazy var carousel:CarouselScrollView = self.creatCarouselScrollView()
-    
-    func creatCarouselScrollView() -> CarouselScrollView {
-        let carousel = CarouselScrollView.init(frame: CGRectMake(50, 100, view.bounds.width - 100, view.bounds.height - 200))
-        view.addSubview(carousel)
-        carousel.backgroundColor = UIColor.yellowColor()
-//        carousel.direction = .Vertical
-        carousel.type = .Loop
-        carousel.dataSource = self
-        
-        return carousel
-    }
+    @IBOutlet weak var carousel: CarouselScrollView!
 
+    @IBOutlet weak var slidePageCount: UISlider!
+    
+    @IBOutlet weak var pageCountLabel: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
+        carousel.type = .Loop
         carousel.dataSource = self
-        carousel.scrollToPge(0)
+        carousel.scrollToPage(0)
+        carousel.reload()
         
+        carousel.autoScroll(3, increase: true)
     }
 
     override func didReceiveMemoryWarning() {
@@ -37,39 +32,71 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse {
     }
     
     func numberOfView(carousel: CarouselScrollView) -> Int {
-        return 4
+        return Int(slidePageCount.value)
     }
     
     func carousel(carousel: CarouselScrollView, viewForIndex: Int) -> UIView? {
         
-        if carousel.direction == .Horizontal {
-            let vf = CGRectMake(10, 50, carousel.frame.width/CGFloat(carousel.visiblePage)-20, carousel.frame.height - 100)
-            let v = UIView.init(frame: vf)
-            let label = UILabel.init(frame: CGRectMake(5, 5, v.frame.width-5, v.frame.height-5))
-            label.text = "Page \(viewForIndex)"
-            label.backgroundColor = UIColor.purpleColor()
-            v.addSubview(label)
-            label.center = v.center
-            v.backgroundColor = UIColor.orangeColor()
-            return v
+        let padding:CGFloat = 20
+        let v = UIView()
+        v.backgroundColor = UIColor.orangeColor()
+        
+        
+        let label = UILabel()
+        label.text = "Page \(viewForIndex)"
+        label.backgroundColor = UIColor.purpleColor()
+        v.addSubview(label)
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        let w = label.heightAnchor.constraintEqualToAnchor(v.heightAnchor, multiplier: 1, constant: -padding * 2)
+        let h = label.widthAnchor.constraintEqualToAnchor(v.widthAnchor, multiplier: 1, constant: -padding * 2)
+        let cx = label.centerXAnchor.constraintEqualToAnchor(v.centerXAnchor)
+        let cy = label.centerYAnchor.constraintEqualToAnchor(v.centerYAnchor)
+        
+        NSLayoutConstraint.activateConstraints([w, h, cx, cy])
+//        label.addConstraints([w, h, cx, cy])
+        v.layer.borderColor = UIColor.redColor().CGColor
+        v.layer.borderWidth = 1
+        return v
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        carousel.reload()
+    }
+    
+    @IBAction func changeDirection(sender: UISwitch) {
+        carousel.direction =  sender.on ? .Horizontal : .Vertical
+        carousel.reload()
+    }
+    
+    @IBAction func changeType(sender: UISwitch) {
+        carousel.type =  sender.on ? .Loop : .Linear
+        carousel.reload()
+    }
+    
+    var preDouble:Double = -1
+    @IBAction func changePage(sender: UIStepper) {
+        if preDouble < sender.value {
+            carousel.nextPage(true)
         } else {
-            let vf = CGRectMake(10, 10, carousel.frame.width - 10, carousel.frame.height/CGFloat(carousel.visiblePage)-20)
-            let v = UIView.init(frame: vf)
-            let label = UILabel.init(frame: CGRectMake(5, 5, v.frame.width-5, v.frame.height-5))
-            label.text = "Page \(viewForIndex)"
-            label.backgroundColor = UIColor.purpleColor()
-            v.addSubview(label)
-            label.center = v.center
-            v.backgroundColor = UIColor.orangeColor()
-            return v
+            carousel.prePage(true)
+        }
+        preDouble = sender.value
+    }
+    
+    @IBAction func changAutoScroll(sender: UISwitch) {
+        if sender.on {
+            carousel.autoScroll(3, increase: true)
+        } else {
+            carousel.stopAutoScroll()
         }
     }
-
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        super.touchesBegan(touches, withEvent: event)
-        
-        print("\(carousel.firstVisiblePageViews?.validPage) \(carousel.lastVisiblePageViews?.validPage)")
+    
+    @IBAction func changePageCount(sender: UISlider) {
+        pageCountLabel.text = "Count: \(Int(sender.value))"
+        carousel.reload()
     }
-
+    
 }
 
