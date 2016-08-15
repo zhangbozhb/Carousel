@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, CarouselScrollViewDataSourse {
+class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselScrollViewDelegate {
     @IBOutlet weak var carousel: CarouselScrollView!
 
     @IBOutlet weak var slidePageCount: UISlider!
@@ -20,10 +20,11 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse {
         // Do any additional setup after loading the view, typically from a nib.
         carousel.type = .Loop
         carousel.dataSource = self
+        carousel.carouselDelegate = self
         carousel.scrollToPage(0)
         carousel.reload()
         
-        carousel.autoScroll(3, increase: true)
+        carousel.autoScroll(2, increase: true)
     }
 
     override func didReceiveMemoryWarning() {
@@ -96,6 +97,16 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse {
     @IBAction func changePageCount(sender: UISlider) {
         pageCountLabel.text = "Count: \(Int(sender.value))"
         carousel.reload()
+    }
+    
+    
+    // CarouselScrollViewDelegate
+    func carousel(carousel: CarouselScrollView, didScrollFrom: Int, to: Int) {
+        print("didScrollFrom \(didScrollFrom) \(to)")
+    }
+    
+    func carousel(carousel: CarouselScrollView, scrollFrom: Int, to: Int, progress: CGFloat) {
+        print("scrollFrom \(scrollFrom) \(to) \(progress)")
     }
     
 }
