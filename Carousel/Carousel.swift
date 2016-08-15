@@ -14,24 +14,7 @@ protocol CarouselScrollViewDataSourse:class {
 }
 
 
-enum CarouselDirection {
-    case Horizontal, Vertical
-}
-
-enum CarouselType {
-    case Linear, Loop
-}
-
-extension CarouselScrollView {
-    var pageWidth:CGFloat {
-        return direction == .Horizontal ? frame.width / CGFloat(visiblePage) : frame.width
-    }
-    var pageHeight:CGFloat {
-        return direction == .Vertical ? frame.height / CGFloat(visiblePage) : frame.height
-    }
-}
-
-class CarouselPage {
+public class CarouselPage {
     private(set) var page:Int = 0
     private(set) var count:Int = 0
     
@@ -59,24 +42,107 @@ class CarouselPage {
         return count > 0 ? p % count : 0
     }
     
-    func reuse(page:Int, count:Int) -> CarouselPage? {
-        if self.count == count {
-            self.page = page
-            return self
+    func reuse(page:Int) -> CarouselPage {
+        self.page = page
+        return self
+    }
+    
+    func removePage() {
+        view.removeFromSuperview()
+    }
+}
+
+extension CarouselPage {
+    var cacheKey: String {
+        return "\(validPage)_\(count)"
+    }
+}
+
+class CarouselPageCache {
+    private var pageCount = 0
+    private var cachedPages = [String: (Int, CarouselPage)]()
+    
+    private var queueIndex:Int = 0
+
+    func push(page:CarouselPage) {
+        if cachedPages.isEmpty {
+            pageCount = page.count
+        } else if pageCount != page.count {
+            cachedPages = [:]
+            pageCount = page.count
         }
-        return nil
+        queueIndex += 1
+        cachedPages[page.cacheKey] = (queueIndex, page)
+    }
+    
+    func cachePage(page:Int, count:Int, removeFromCache:Bool = true) -> CarouselPage? {
+        guard count > 0 else {
+            return nil
+        }
+        let cacheKey = "\(page)_\(count)"
+        let cached = cachedPages[cacheKey]
+        if removeFromCache {
+            cachedPages.removeValueForKey(cacheKey)
+        }
+        return cached?.1
+    }
+    
+    func clear() {
+        cachedPages = [:]
+    }
+    
+    func limitSize(size:Int) {
+        if size > 0 && cachedPages.count > size {
+            let sorted = cachedPages.sort({ $0.1.0 > $1.1.0 })
+            var remainedPages = [String: (Int, CarouselPage)]()
+            for p in sorted[0..<size] {
+                remainedPages[p.0] = p.1
+            }
+            for p in sorted[size..<sorted.count] {
+                p.1.1.removePage()
+            }
+            cachedPages = remainedPages
+        } else if size == 0 {
+            for p in cachedPages {
+                p.1.1.removePage()
+            }
+            cachedPages = [:]
+        }
+    }
+    
+    deinit {
+        cachedPages = [:]
+    }
+}
+
+enum CarouselDirection {
+    case Horizontal, Vertical
+}
+
+enum CarouselType {
+    case Linear, Loop
+}
+
+extension CarouselScrollView {
+    var pageWidth:CGFloat {
+        return direction == .Horizontal ? frame.width / CGFloat(visiblePageCount) : frame.width
+    }
+    var pageHeight:CGFloat {
+        return direction == .Vertical ? frame.height / CGFloat(visiblePageCount) : frame.height
     }
 }
 
 class CarouselScrollView: UIScrollView {
     private var baseInited = false
-    private(set) var visiblePage:UInt = 3
-    private(set) var bufferPage:UInt = 1    // one side
+    private(set) var visiblePageCount:UInt = 3
+    private(set) var bufferPageCount:UInt = 1    // one side
     
     private var threshold:CGFloat = 1
     private var pageViews = [CarouselPage]()
+    private var reusablePages = CarouselPageCache()
     
-    
+    /// cached page size: default is zero, if is negative will cache all
+    var cacheSize:Int = 0
     var direction = CarouselDirection.Horizontal
     var type = CarouselType.Linear
     var dataSource:CarouselScrollViewDataSourse? {
@@ -131,6 +197,8 @@ class CarouselScrollView: UIScrollView {
         case .Loop:
             updateVisiblePageLoop()
         }
+        let minSize = Int(visiblePageCount + 2 * bufferPageCount)
+        reusablePages.limitSize(cacheSize > minSize ? cacheSize - minSize : cacheSize)
     }
     
     func reload() {
@@ -203,8 +271,7 @@ extension CarouselScrollView {
     }
     
     private func setupPageLinear(page:Int, count:Int, tail:Bool = true) -> CarouselPage {
-        let pageView = CarouselPage.init(page: page, count: count, view: fetchPage(page))
-        
+        let pageView = reusablePages.cachePage(page, count: count, removeFromCache: true)?.reuse(page) ?? CarouselPage.init(page: page, count: count, view: fetchPage(page))
         if tail {
             pageViews.append(pageView)
         } else {
@@ -225,18 +292,16 @@ extension CarouselScrollView {
         let count = ds.numberOfView(self)
         if direction == .Horizontal {
             let pageWidth = self.pageWidth
-            let minX = max(ceil(contentOffset.x / pageWidth - CGFloat(bufferPage)) * pageWidth, 0)
-            let maxX = minX + CGFloat(visiblePage + bufferPage * 2) * pageWidth
+            let minX = max(ceil(contentOffset.x / pageWidth - CGFloat(bufferPageCount)) * pageWidth, 0)
+            let maxX = minX + CGFloat(visiblePageCount + bufferPageCount * 2) * pageWidth
             
             // 右侧：移除page
             while let page = pageViews.last where page.view.frame.minX + threshold > maxX {
-                pageViews.removeLast()
-                page.view.removeFromSuperview()
+                reusablePages.push(pageViews.removeLast())
             }
             // 左侧：移除page
             while let page = pageViews.first where page.view.frame.maxX - threshold < minX {
-                pageViews.removeFirst()
-                page.view.removeFromSuperview()
+                reusablePages.push(pageViews.removeFirst())
             }
             
             // 处理为空情况
@@ -253,18 +318,16 @@ extension CarouselScrollView {
             }
         } else {
             let pageHeight = self.pageHeight
-            let minY = max(ceil(contentOffset.y / pageHeight - CGFloat(bufferPage)) * pageHeight, 0)
-            let maxY = minY + CGFloat(visiblePage + bufferPage * 2) * pageHeight
+            let minY = max(ceil(contentOffset.y / pageHeight - CGFloat(bufferPageCount)) * pageHeight, 0)
+            let maxY = minY + CGFloat(visiblePageCount + bufferPageCount * 2) * pageHeight
             
             // 尾部：移除page
             while let page = pageViews.last where page.view.frame.minY + threshold > maxY {
-                pageViews.removeLast()
-                page.view.removeFromSuperview()
+                reusablePages.push(pageViews.removeLast())
             }
             // 首部：移除page
             while let page = pageViews.first where page.view.frame.maxY - threshold < minY {
-                pageViews.removeFirst()
-                page.view.removeFromSuperview()
+                reusablePages.push(pageViews.removeFirst())
             }
             
             // 处理为空情况
@@ -283,16 +346,15 @@ extension CarouselScrollView {
     }
 }
 
-private let minPixi = 1 / UIScreen.mainScreen().scale
 // 循环page
 extension CarouselScrollView {
     // 第一个page相对于 0 偏移的page数量
     private var offsetPage:Int {
-        return Int(visiblePage)
+        return Int(visiblePageCount)
     }
     
     private func updateContentOffsetLoop() {
-        guard let count = dataSource?.numberOfView(self) where count > Int(visiblePage) else {
+        guard let count = dataSource?.numberOfView(self) where count > Int(visiblePageCount) else {
             return
         }
         if decelerating {
@@ -301,7 +363,7 @@ extension CarouselScrollView {
 
         switch direction {
         case .Horizontal:
-            let bufferWidth = pageWidth * CGFloat(visiblePage)
+            let bufferWidth = pageWidth * CGFloat(visiblePageCount)
             let totalPageWidth = pageWidth * CGFloat(count)
             let minX = bufferWidth
             let maxX = totalPageWidth + bufferWidth
@@ -313,7 +375,7 @@ extension CarouselScrollView {
                 updateVisiblePageLoop()
             }
         case .Vertical:
-            let bufferHeight = pageHeight * CGFloat(visiblePage)
+            let bufferHeight = pageHeight * CGFloat(visiblePageCount)
             let totalPageHeight = pageHeight * CGFloat(count)
             let minY = bufferHeight
             let maxY = totalPageHeight + bufferHeight
@@ -329,8 +391,8 @@ extension CarouselScrollView {
     
     private func updateContentSizeLoop() {
         var targetSize = frame.size
-        if let count = dataSource?.numberOfView(self) where count > Int(visiblePage) {
-            let targetCount = count + Int(2 * visiblePage)
+        if let count = dataSource?.numberOfView(self) where count > Int(visiblePageCount) {
+            let targetCount = count + Int(2 * visiblePageCount)
             if direction == .Horizontal {
                 targetSize = CGSizeMake(CGFloat(targetCount) * pageWidth, frame.height)
             } else {
@@ -349,6 +411,7 @@ extension CarouselScrollView {
         for page in pre {
             page.view.removeFromSuperview()
         }
+        reusablePages.clear()
     }
     
     private func frameLoop(page:Int) -> CGRect {
@@ -370,19 +433,9 @@ extension CarouselScrollView {
         return count > 0 ? p % count : 0
     }
 
-    private func setupPageLoop(page:Int, count:Int, tail:Bool, inout reusablePages:[CarouselPage]) -> CarouselPage {
+    private func setupPageLoop(page:Int, count:Int, tail:Bool) -> CarouselPage {
         let validPage = validPageLoop(page, count: count)
-        var pageView:CarouselPage!
-        for (index, p) in reusablePages.enumerate() {
-            if p.validPage == validPage && p.count == count {
-                pageView = p.reuse(page, count: count)
-                reusablePages.removeAtIndex(index)
-                break
-            }
-        }
-        if pageView == nil {
-            pageView = CarouselPage.init(page: page, count: count, view: fetchPage(validPage))
-        }
+        let pageView = reusablePages.cachePage(validPage, count: count, removeFromCache: true)?.reuse(page) ?? CarouselPage.init(page: page, count: count, view: fetchPage(validPage))
         if tail {
             pageViews.append(pageView)
         } else {
@@ -403,61 +456,57 @@ extension CarouselScrollView {
         let count = ds.numberOfView(self)
         if direction == .Horizontal {
             let pageWidth = self.pageWidth
-            let bufferPageWidth = min(CGFloat(visiblePage + bufferPage * 2), CGFloat(count)) * pageWidth
+            let bufferPageWidth = min(CGFloat(visiblePageCount + bufferPageCount * 2), CGFloat(count)) * pageWidth
             let maxX = floor((contentOffset.x + bufferPageWidth) / pageWidth) * pageWidth
             let minX = maxX - bufferPageWidth
-            var toRemovePages = [CarouselPage]()
             
             // 右侧：移除page
             while let page = pageViews.last where page.view.frame.minX + threshold > maxX {
-                toRemovePages.append(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast())
             }
             // 左侧：移除page
             while let page = pageViews.first where page.view.frame.maxX - threshold < minX {
-                toRemovePages.insert(pageViews.removeFirst(), atIndex: 0)
+                reusablePages.push(pageViews.removeFirst())
             }
             
             // 处理为空情况
             if pageViews.isEmpty {
-                var empty = [CarouselPage]()
-                setupPageLoop(Int(contentOffset.x / pageWidth) - offsetPage, count: count, tail: true, reusablePages: &empty)
+                setupPageLoop(Int(contentOffset.x / pageWidth) - offsetPage, count: count, tail: true)
             }
             // 右侧：添加page
             while let page = pageViews.last where page.view.frame.maxX + threshold < maxX {
-                setupPageLoop(page.page + 1, count: count, tail: true, reusablePages: &toRemovePages)
+                setupPageLoop(page.page + 1, count: count, tail: true)
             }
             // 左侧：添加page
             while let page = pageViews.first where page.view.frame.minX - threshold > minX {
-                setupPageLoop(page.page - 1, count: count, tail: false, reusablePages: &toRemovePages)
+                setupPageLoop(page.page - 1, count: count, tail: false)
             }
         } else {
             let pageHeight = self.pageHeight
-            let bufferPageHeight = min(CGFloat(visiblePage + bufferPage * 2), CGFloat(count)) * pageHeight
+            let bufferPageHeight = min(CGFloat(visiblePageCount + bufferPageCount * 2), CGFloat(count)) * pageHeight
             let maxY = floor((contentOffset.y + bufferPageHeight) / pageHeight) * pageHeight
             let minY = maxY - bufferPageHeight
-            var toRemovePages = [CarouselPage]()
             
             // 尾部：移除page
             while let page = pageViews.last where page.view.frame.minY + threshold > maxY {
-                toRemovePages.append(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast())
             }
             // 首部：移除page
             while let page = pageViews.first where page.view.frame.maxY - threshold < minY {
-                toRemovePages.insert(pageViews.removeFirst(), atIndex: 0)
+                reusablePages.push(pageViews.removeFirst())
             }
             
             // 处理为空情况
             if pageViews.isEmpty {
-                var empty = [CarouselPage]()
-                setupPageLoop(Int(contentOffset.y / pageHeight) - offsetPage, count: count, tail: true, reusablePages: &empty)
+                setupPageLoop(Int(contentOffset.y / pageHeight) - offsetPage, count: count, tail: true)
             }
             // 尾部：添加page
             while let page = pageViews.last where page.view.frame.maxY + threshold < maxY {
-                setupPageLoop(page.page + 1, count: count, tail: true, reusablePages: &toRemovePages)
+                setupPageLoop(page.page + 1, count: count, tail: true)
             }
             // 首部：添加page
             while let page = pageViews.first where page.view.frame.minY - threshold > minY {
-                setupPageLoop(page.page - 1, count: count, tail: false, reusablePages: &toRemovePages)
+                setupPageLoop(page.page - 1, count: count, tail: false)
             }
         }
     }
@@ -485,7 +534,7 @@ extension CarouselScrollView: UIScrollViewDelegate {
 }
 
 extension CarouselScrollView {
-    var visiblePageViews:[CarouselPage] {
+    var visiblePages:[CarouselPage] {
         var result = [CarouselPage]()
         switch direction {
         case .Horizontal:
@@ -508,7 +557,7 @@ extension CarouselScrollView {
         return result
     }
     
-    var firstVisiblePageViews:CarouselPage? {
+    var firstVisiblePage:CarouselPage? {
         var page = pageViews.first
         switch direction {
         case .Horizontal:
@@ -529,7 +578,7 @@ extension CarouselScrollView {
         return page
     }
     
-    var lastVisiblePageViews:CarouselPage? {
+    var lastVisiblePage:CarouselPage? {
         var page = pageViews.last
         switch direction {
         case .Horizontal:
@@ -553,12 +602,34 @@ extension CarouselScrollView {
     func scrollToPage(page:Int, animated:Bool = false) {
         switch type {
         case .Linear:
-            setContentOffset(frameLinear(page).origin, animated: animated)
-            
+            var offset = frameLinear(page).origin
+            switch direction {
+            case .Horizontal:
+                let maxX = contentSize.width - frame.width
+                offset.x = max(min(maxX, offset.x), 0)
+            case .Vertical:
+                let maxY = contentSize.height - frame.height
+                offset.y = max(min(maxY, offset.y), 0)
+            }
+            setContentOffset(offset, animated: animated)
         case .Loop:
             setContentOffset(frameLoop(page).origin, animated: animated)
         }
         updateVisiblePage()
+    }
+    
+    func nextPage(animated:Bool = false) {
+        guard let first = firstVisiblePage else {
+            return
+        }
+        scrollToPage(first.page + 1, animated: animated)
+    }
+    
+    func prePage(animated:Bool = false) {
+        guard let first = firstVisiblePage else {
+            return
+        }
+        scrollToPage(first.page - 1, animated: animated)
     }
 }
 
