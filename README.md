@@ -6,6 +6,11 @@
 [![Cocoapods compatible](https://img.shields.io/badge/Cocoapods-compatible-4BC51D.svg?style=flat)](https://cocoapods.org)
 [![License: MIT](http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/jiecao-fm/SwiftTheme/blob/master/LICENSE)
 
+
+###ScreenShots
+![CarouselSwift](https://github.com/zhangbozhb/CarouselSwift/blob/master/screenshots_1.gif)
+
+
 # Introduction
 
 CarouselSwift implement carouse effect. Available Features:
