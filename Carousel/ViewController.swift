@@ -11,13 +11,21 @@ import UIKit
 class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselScrollViewDelegate {
     @IBOutlet weak var carousel: CarouselScrollView!
 
-    @IBOutlet weak var slidePageCount: UISlider!
+
+    @IBOutlet weak var visiblePageCount: UILabel!
+    @IBOutlet weak var slideVisiblePageCount: UISlider!
     
+    @IBOutlet weak var slidePageCount: UISlider!
     @IBOutlet weak var pageCountLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        pageCountLabel.text = "Total Page: \(Int(slidePageCount.value))"
+        visiblePageCount.text = "Visiable Page: \(Int(slideVisiblePageCount.value))"
+        carousel.visiblePageCount = Int(slideVisiblePageCount.value)
+        
         carousel.type = .Loop
         carousel.dataSource = self
         carousel.carouselDelegate = self
@@ -44,7 +52,8 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
         
         
         let label = UILabel()
-        label.text = "Page \(viewForIndex)"
+        label.textAlignment = .Center
+        label.text = "P \(viewForIndex)"
         label.backgroundColor = UIColor.purpleColor()
         v.addSubview(label)
         
@@ -95,7 +104,13 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
     }
     
     @IBAction func changePageCount(sender: UISlider) {
-        pageCountLabel.text = "Count: \(Int(sender.value))"
+        pageCountLabel.text = "Total Page: \(Int(sender.value))"
+        carousel.reload()
+    }
+    
+    @IBAction func changeVisibelPageCount(sender: UISlider) {
+        visiblePageCount.text = "Visiable Page: \(Int(sender.value))"
+        carousel.visiblePageCount = Int(sender.value)
         carousel.reload()
     }
     

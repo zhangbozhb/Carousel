@@ -163,8 +163,24 @@ public extension CarouselScrollView {
 
 public class CarouselScrollView: UIScrollView {
     private var baseInited = false
-    private(set) var visiblePageCount:UInt = 3
-    private(set) var bufferPageCount:UInt = 1    // one side
+    public var visiblePageCount:Int = 3 {
+        didSet {
+            if visiblePageCount <= 0 {
+                visiblePageCount = 1
+            } else {
+                reload()
+            }
+        }
+    }
+    public var bufferPageCount:Int = 1 {        // one side
+        didSet {
+            if bufferPageCount < 0 {
+                visiblePageCount = 0
+            } else {
+                updateVisiblePage()
+            }
+        }
+    }
     
     private var threshold:CGFloat = 1
     private var pageViews = [CarouselPage]()
@@ -177,7 +193,7 @@ public class CarouselScrollView: UIScrollView {
     
     /// cached page size: default is zero, if is negative will cache all
     private var reusablePageSize:Int {
-        let minSize = Int(visiblePageCount + 2 * bufferPageCount)
+        let minSize = visiblePageCount + 2 * bufferPageCount
         return cacheSize > minSize ? cacheSize - minSize : cacheSize
     }
     public var cacheSize:Int = 0 {
@@ -510,7 +526,7 @@ extension CarouselScrollView {
     }
     
     private func updateContentOffsetLoop() {
-        guard let count = dataSource?.numberOfView(self) where count > Int(visiblePageCount) else {
+        guard let count = dataSource?.numberOfView(self) where count > visiblePageCount else {
             return
         }
         if decelerating {
@@ -547,8 +563,8 @@ extension CarouselScrollView {
     
     private func updateContentSizeLoop() {
         var targetSize = frame.size
-        if let count = dataSource?.numberOfView(self) where count > Int(visiblePageCount) {
-            let targetCount = count + Int(2 * visiblePageCount)
+        if let count = dataSource?.numberOfView(self) where count > visiblePageCount {
+            let targetCount = count + 2 * visiblePageCount
             if direction == .Horizontal {
                 targetSize = CGSizeMake(CGFloat(targetCount) * pageWidth, frame.height)
             } else {

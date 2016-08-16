@@ -14,7 +14,7 @@
 		EDCB01D11D47051200799A45 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDCB01CF1D47051200799A45 /* LaunchScreen.storyboard */; };
 		EDCB01DC1D47051200799A45 /* CarouselTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCB01DB1D47051200799A45 /* CarouselTests.swift */; };
 		EDCB01E71D47051200799A45 /* CarouselUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCB01E61D47051200799A45 /* CarouselUITests.swift */; };
-		EDCB01F51D47053500799A45 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCB01F41D47053500799A45 /* Carousel.swift */; };
+		EDF0CABC1D629411003F6575 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF0CABB1D629411003F6575 /* Carousel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,7 +48,7 @@
 		EDCB01E21D47051200799A45 /* CarouselUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CarouselUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCB01E61D47051200799A45 /* CarouselUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselUITests.swift; sourceTree = "<group>"; };
 		EDCB01E81D47051200799A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EDCB01F41D47053500799A45 /* Carousel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
+		EDF0CABB1D629411003F6575 /* Carousel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +79,7 @@
 		EDCB01BA1D47051200799A45 = {
 			isa = PBXGroup;
 			children = (
+				EDF0CABA1D629411003F6575 /* Sources */,
 				EDCB01C51D47051200799A45 /* Carousel */,
 				EDCB01DA1D47051200799A45 /* CarouselTests */,
 				EDCB01E51D47051200799A45 /* CarouselUITests */,
@@ -105,7 +106,6 @@
 				EDCB01CD1D47051200799A45 /* Assets.xcassets */,
 				EDCB01CF1D47051200799A45 /* LaunchScreen.storyboard */,
 				EDCB01D21D47051200799A45 /* Info.plist */,
-				EDCB01F41D47053500799A45 /* Carousel.swift */,
 			);
 			path = Carousel;
 			sourceTree = "<group>";
@@ -126,6 +126,14 @@
 				EDCB01E81D47051200799A45 /* Info.plist */,
 			);
 			path = CarouselUITests;
+			sourceTree = "<group>";
+		};
+		EDF0CABA1D629411003F6575 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				EDF0CABB1D629411003F6575 /* Carousel.swift */,
+			);
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -259,9 +267,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EDCB01F51D47053500799A45 /* Carousel.swift in Sources */,
 				EDCB01C91D47051200799A45 /* ViewController.swift in Sources */,
 				EDCB01C71D47051200799A45 /* AppDelegate.swift in Sources */,
+				EDF0CABC1D629411003F6575 /* Carousel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -488,6 +496,7 @@
 				EDCB01ED1D47051200799A45 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EDCB01EE1D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselTests" */ = {
 			isa = XCConfigurationList;
@@ -496,6 +505,7 @@
 				EDCB01F01D47051200799A45 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EDCB01F11D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselUITests" */ = {
 			isa = XCConfigurationList;
@@ -504,6 +514,7 @@
 				EDCB01F31D47051200799A45 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
