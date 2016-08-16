@@ -8,7 +8,7 @@
 
 
 ###ScreenShots
-![CarouselSwift](https://github.com/zhangbozhb/CarouselSwift/blob/master/screenshots_1.gif)
+![CarouselSwift](https://github.com/zhangbozhb/Carousel/blob/master/screenshots_1.gif)
 
 
 # Introduction
