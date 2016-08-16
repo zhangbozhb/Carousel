@@ -99,10 +99,21 @@
                                     <action selector="changePageCount:" destination="BYZ-38-t0r" eventType="valueChanged" id="wei-Tt-Yp8"/>
                                 </connections>
                             </slider>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Manual:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5vf-yL-Tz1">
+                                <rect key="frame" x="417" y="500" width="65" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="65" id="cHQ-YX-0Tm"/>
+                                    <constraint firstAttribute="height" constant="31" id="cme-Ru-NEP"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="ZjC-W4-wxq" secondAttribute="trailing" constant="10" id="2hC-61-g6J"/>
+                            <constraint firstItem="cuz-ZK-7vO" firstAttribute="leading" secondItem="5vf-yL-Tz1" secondAttribute="trailing" constant="14" id="40g-kx-TwS"/>
                             <constraint firstItem="mD4-C3-tfZ" firstAttribute="top" secondItem="MYV-BS-Hmx" secondAttribute="bottom" constant="24" id="4sy-FC-DEA"/>
                             <constraint firstItem="MYV-BS-Hmx" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="56B-eA-jJv"/>
                             <constraint firstItem="kcV-W8-E2L" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="5bB-Mn-LBg"/>
@@ -119,6 +130,7 @@
                             <constraint firstItem="MYV-BS-Hmx" firstAttribute="width" secondItem="mD4-C3-tfZ" secondAttribute="width" id="LW7-Wa-Cyp"/>
                             <constraint firstItem="ewK-Y5-b5u" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="MrF-0y-WLz"/>
                             <constraint firstAttribute="trailing" secondItem="GcQ-wR-WEL" secondAttribute="trailing" constant="10" id="Pcy-Kg-aqj"/>
+                            <constraint firstItem="5vf-yL-Tz1" firstAttribute="centerY" secondItem="cuz-ZK-7vO" secondAttribute="centerY" id="R1l-bV-045"/>
                             <constraint firstItem="dOg-dI-n80" firstAttribute="width" secondItem="mD4-C3-tfZ" secondAttribute="width" id="Rao-dx-faU"/>
                             <constraint firstItem="mD4-C3-tfZ" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="10" id="Uj6-GN-HgT"/>
                             <constraint firstItem="dOg-dI-n80" firstAttribute="height" secondItem="mD4-C3-tfZ" secondAttribute="height" id="YuX-s0-6nv"/>

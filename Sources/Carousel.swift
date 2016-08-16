@@ -29,7 +29,22 @@
 import UIKit
 
 public protocol CarouselScrollViewDataSourse:class {
+    /**
+     number of view for carouse
+     
+     - parameter carousel: CarouselScrollView instance
+     
+     - returns: number of view
+     */
     func numberOfView(carousel:CarouselScrollView) -> Int
+    /**
+     view at index for carouse
+     
+     - parameter carousel:     CarouselScrollView instance
+     - parameter viewForIndex: page index for view
+     
+     - returns: view at page index
+     */
     func carousel(carousel:CarouselScrollView, viewForIndex:Int) -> UIView?
 }
 
@@ -163,7 +178,8 @@ public extension CarouselScrollView {
 
 public class CarouselScrollView: UIScrollView {
     private var baseInited = false
-    public var visiblePageCount:Int = 3 {
+    /// visible page count
+    public var visiblePageCount:Int = 1 {
         didSet {
             if visiblePageCount <= 0 {
                 visiblePageCount = 1
@@ -172,6 +188,7 @@ public class CarouselScrollView: UIScrollView {
             }
         }
     }
+    /// buffer page count(page create but not visible)
     public var bufferPageCount:Int = 1 {        // one side
         didSet {
             if bufferPageCount < 0 {
@@ -196,18 +213,23 @@ public class CarouselScrollView: UIScrollView {
         let minSize = visiblePageCount + 2 * bufferPageCount
         return cacheSize > minSize ? cacheSize - minSize : cacheSize
     }
+    /// reuse page size number, if negative will cache all pages( high memory usage)
     public var cacheSize:Int = 0 {
         didSet {
             reusablePages.maxSize = reusablePageSize
         }
     }
+    /// layout direction
     public var direction = CarouselDirection.Horizontal
+    /// page layout in Loop or Linear
     public var type = CarouselType.Linear
+    /// support paging
     public var pagingRequired = true {
         didSet {
             pagingEnabled = false
         }
     }
+    /// data source of page views
     public var dataSource:CarouselScrollViewDataSourse? {
         didSet {
             if dataSource !== oldValue {
@@ -215,6 +237,7 @@ public class CarouselScrollView: UIScrollView {
             }
         }
     }
+    /// scroll delegate
     public weak var carouselDelegate:CarouselScrollViewDelegate?
     
     private var autoScrollTimer:NSTimer?
@@ -818,6 +841,12 @@ public extension CarouselScrollView {
         prePage(true)
     }
     
+    /**
+     auto scroll
+     default auto scroll is disable
+     - parameter timeInterval: scroll time interval
+     - parameter increase:     page increase or decrease
+     */
     public func autoScroll(timeInterval:NSTimeInterval, increase:Bool) {
         autoScrollIncrease = increase
         autoScrollTimer?.invalidate()
@@ -829,15 +858,23 @@ public extension CarouselScrollView {
             repeats: true)
     }
     
+    /**
+     stop auto scroll
+     */
     public func stopAutoScroll() {
         autoScrollTimer?.invalidate()
         autoScrollTimer = nil
     }
-    
+    /**
+     pause auto scroll
+     */
     public func pauseAutoScroll() {
         autoScrollTimer?.invalidate()
     }
-    
+    /**
+     resume auto scroll
+     if your never call autoScroll(_:increase), auto scroll will not work
+     */
     public func resumeAutoScroll() {
         if let timer = autoScrollTimer {
             autoScroll(timer.timeInterval, increase: autoScrollIncrease)

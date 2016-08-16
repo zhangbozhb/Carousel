@@ -25,7 +25,9 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
         pageCountLabel.text = "Total Page: \(Int(slidePageCount.value))"
         visiblePageCount.text = "Visiable Page: \(Int(slideVisiblePageCount.value))"
         carousel.visiblePageCount = Int(slideVisiblePageCount.value)
-        
+
+//        carousel = CarouselScrollView.init(frame: view.bounds)
+//        view.addSubview(carousel)
         carousel.type = .Loop
         carousel.dataSource = self
         carousel.carouselDelegate = self
@@ -67,7 +69,7 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
 //        label.addConstraints([w, h, cx, cy])
         v.layer.borderColor = UIColor.redColor().CGColor
         v.layer.borderWidth = 1
-        return v
+        return (viewForIndex % 6 == 0 && viewForIndex != 0) ? nil : v
     }
 
     override func viewDidLayoutSubviews() {
