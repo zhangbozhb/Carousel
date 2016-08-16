@@ -27,14 +27,14 @@ CarouselSwift implement carouse effect. Available Features:
      	* UIPanGestureRecognizer delegate modify
 
 	* CarouselSwift VS Component provided by system
-
-    | |  CarouselSwift |  UITableView |  UICollectionView |  UIPageViewController |
-    | : ---- : | : ---- : | : ---- : | : ---- : | : ---- : |
+ 
+    | | CarouselSwift | UITableView | UICollectionView | UIPageViewController |
+    | :------ | :------: | :------: | :------: | :------: |
     | Horizontal Layout | √  | ×  | √  | √ | √ |
     | Vertical Layout |  √  | ×  | √ | √ |
     | Page arrange in linear  | √  | × | √  | √ |
     | Page arrange in loop  | √  | ×  | ×  | √ |
-    | cell 是 否 要 求 相 同  | √  | ×  | ×  | √ |
+    | cell size require same  | √  | ×  | ×  | √ |
     | Reusage optimization | √  | √  | √  | √ |
     | cell reusable  | ×(partial)  | √  | √ | √ |
     | multi cell in one page | √  | √  | √ | × |
@@ -77,7 +77,7 @@ carousel.scrollToPage(1) // scroll to specify page
 carousel.visiblePageCount = 3 // number view show in one page
 
 
-CarouselScrollViewDataSourse
+// CarouselScrollViewDataSourse
 func numberOfView(carousel:CarouselScrollView) -> Int:  // total count of view
 func carousel(carousel:CarouselScrollView, viewForIndex:Int) -> UIView?
 
@@ -121,8 +121,8 @@ CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下�
             
 	* CarouselSwift 与系统提供的组件简单比较
 
-    | |  CarouselSwift |  UITableView |  UICollectionView |  UIPageViewController | 
-    | : ---- : | : ---- : | : ---- : | : ---- : | : ---- : | 
+    | | CarouselSwift | UITableView | UICollectionView | UIPageViewController |
+    | :------ | :------: | :------: | :------: | :------: | 
     | 水 平 布 局 | √  | ×  | √  | √ | √ |
     | 垂 直 布 局 |  √  | ×  | √ | √ |
     | 内 容 线 性 排 列  | √  | × | √  | √ |
@@ -170,7 +170,7 @@ carousel.scrollToPage(1) // 滚动到指定 page
 carousel.visiblePageCount = 3 // 单页可以显示 view 数量
 
 
-CarouselScrollViewDataSourse
+// CarouselScrollViewDataSourse
 func numberOfView(carousel:CarouselScrollView) -> Int:  // 返回用于显示 view 的总数
 func carousel(carousel:CarouselScrollView, viewForIndex:Int) -> UIView? // index 对应的 view, nil则表示该 index 不显示
 
