@@ -35,7 +35,7 @@ CarouselSwift implement carouse effect. Available Features:
  
     | | CarouselSwift | UITableView | UICollectionView | UIPageViewController |
     | :------ | :------: | :------: | :------: | :------: |
-    | Horizontal Layout | √  | ×  | √  | √ | √ |
+    | Horizontal Layout | √  | ×  | √  | √ |
     | Vertical Layout |  √  | ×  | √ | √ |
     | Page arrange in linear  | √  | × | √  | √ |
     | Page arrange in loop  | √  | ×  | ×  | √ |
@@ -45,7 +45,7 @@ CarouselSwift implement carouse effect. Available Features:
     | multi cell in one page | √  | √  | √ | × |
     | pagingEnable  | √  | ×  | ×  | √ |
     | UIPanGestureRecognizer delegate modify  | √ | × |  × |  × |
-    | scroll progress | √ |  √ |（ indirect ）|  √ （ indirect ） | × |
+    | scroll progress | √ |√（ indirect ）|  √ （ indirect ） | × |
 
 	According comparison above，you may find that CarouselSwift has much in common to UIPageViewController, but more simple to use.
 	* CarouselSwift VS Other similar component：
@@ -128,7 +128,7 @@ CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下�
 
     | | CarouselSwift | UITableView | UICollectionView | UIPageViewController |
     | :------ | :------: | :------: | :------: | :------: | 
-    | 水 平 布 局 | √  | ×  | √  | √ | √ |
+    | 水 平 布 局 | √  | ×  | √  | √ |
     | 垂 直 布 局 |  √  | ×  | √ | √ |
     | 内 容 线 性 排 列  | √  | × | √  | √ |
     | 内 容 循 环 排 列  | √  | ×  | ×  | √ |
@@ -138,7 +138,7 @@ CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下�
     | page 中 显 示 多 个 cell | √  | √  | √ | × |
     | 是 否 支 持 分 页  | √  | ×  | ×  | √ |
     | UIPanGestureRecognizer delegate 修 改  | √ | × |  × |  × |
-    | 滑 动 进 度 | √ |  √ |（ 间 接 ）|  √ （ 间 接 ） | × |
+    | 滑 动 进 度 | √ |√（ 间 接 ）|  √ （ 间 接 ） | × |
 
 	通过上面的比较，可以发现 CarouselSwift 和 UIPageViewController 有很大的相似性（其实差不多就是模仿 UIPageViewController 来做的），使用起来更为简单
 	* CarouselSwift 与其他类似功能组建比较：
