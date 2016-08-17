@@ -31,9 +31,9 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         carousel.type = .Loop
         carousel.dataSource = self
         carousel.carouselDelegate = self
-        carousel.scrollToPage(0)
         carousel.reload()
         
+        carousel.scrollToPage(0)
         carousel.autoScroll(2, increase: true)
     }
 
@@ -70,11 +70,6 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         v.layer.borderColor = UIColor.redColor().CGColor
         v.layer.borderWidth = 1
         return (viewForIndex % 6 == 0 && viewForIndex != 0) ? nil : v
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        carousel.reload()
     }
     
     @IBAction func changeDirection(sender: UISwitch) {
