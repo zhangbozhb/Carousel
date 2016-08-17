@@ -8,8 +8,8 @@
 
 import UIKit
 
-class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselScrollViewDelegate {
-    @IBOutlet weak var carousel: CarouselScrollView!
+class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDelegate {
+    @IBOutlet weak var carousel: CarouselView!
 
 
     @IBOutlet weak var visiblePageCount: UILabel!
@@ -26,7 +26,7 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
         visiblePageCount.text = "Visiable Page: \(Int(slideVisiblePageCount.value))"
         carousel.visiblePageCount = Int(slideVisiblePageCount.value)
 
-//        carousel = CarouselScrollView.init(frame: view.bounds)
+//        carousel = CarouselView.init(frame: view.bounds)
 //        view.addSubview(carousel)
         carousel.type = .Loop
         carousel.dataSource = self
@@ -42,11 +42,11 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
         // Dispose of any resources that can be recreated.
     }
     
-    func numberOfView(carousel: CarouselScrollView) -> Int {
+    func numberOfView(carousel: CarouselView) -> Int {
         return Int(slidePageCount.value)
     }
     
-    func carousel(carousel: CarouselScrollView, viewForIndex: Int) -> UIView? {
+    func carousel(carousel: CarouselView, viewForIndex: Int) -> UIView? {
         
         let padding:CGFloat = 20
         let v = UIView()
@@ -117,12 +117,12 @@ class ViewController: UIViewController, CarouselScrollViewDataSourse, CarouselSc
     }
     
     
-    // CarouselScrollViewDelegate
-    func carousel(carousel: CarouselScrollView, didScrollFrom: Int, to: Int) {
+    // CarouselViewDelegate
+    func carousel(carousel: CarouselView, didScrollFrom: Int, to: Int) {
         print("didScrollFrom \(didScrollFrom) \(to)")
     }
     
-    func carousel(carousel: CarouselScrollView, scrollFrom: Int, to: Int, progress: CGFloat) {
+    func carousel(carousel: CarouselView, scrollFrom: Int, to: Int, progress: CGFloat) {
         print("scrollFrom \(scrollFrom) \(to) \(progress)")
     }
     

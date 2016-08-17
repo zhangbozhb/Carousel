@@ -69,7 +69,7 @@ CarouselSwift implement with UIScrollView
 ## Usage
 
 ```Swift
-let carousel = CarouselScrollView.init(frame: view.bounds)
+let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
 carousel.type = .Loop   // set page loop or linear
 carousel.dataSource = self  // set data source page view
@@ -82,9 +82,9 @@ carousel.scrollToPage(1) // scroll to specify page
 carousel.visiblePageCount = 3 // number view show in one page
 
 
-// CarouselScrollViewDataSourse
-func numberOfView(carousel:CarouselScrollView) -> Int:  // total count of view
-func carousel(carousel:CarouselScrollView, viewForIndex:Int) -> UIView?
+// CarouselViewDataSourse
+func numberOfView(carousel:CarouselView) -> Int:  // total count of view
+func carousel(carousel:CarouselView, viewForIndex:Int) -> UIView?
 
 ```
 
@@ -162,7 +162,7 @@ CarouselSwift 是采用 UIScrollView 来实现的
 ## 使用
 
 ```Swift
-let carousel = CarouselScrollView.init(frame: view.bounds)
+let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
 carousel.type = .Loop   // 设置内容 page 是否循环
 carousel.dataSource = self  // 设置数据源 page view
@@ -175,8 +175,8 @@ carousel.scrollToPage(1) // 滚动到指定 page
 carousel.visiblePageCount = 3 // 单页可以显示 view 数量
 
 
-// CarouselScrollViewDataSourse
-func numberOfView(carousel:CarouselScrollView) -> Int:  // 返回用于显示 view 的总数
-func carousel(carousel:CarouselScrollView, viewForIndex:Int) -> UIView? // index 对应的 view, nil则表示该 index 不显示
+// CarouselViewDataSourse
+func numberOfView(carousel:CarouselView) -> Int:  // 返回用于显示 view 的总数
+func carousel(carousel:CarouselView, viewForIndex:Int) -> UIView? // index 对应的 view, nil则表示该 index 不显示
 
 ```
