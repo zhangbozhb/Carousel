@@ -68,6 +68,7 @@ CarouselSwift implement with UIScrollView
 
 ## Usage
 
+### CarouselView
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
@@ -83,8 +84,29 @@ carousel.visiblePageCount = 3 // number view show in one page
 
 
 // CarouselViewDataSourse
-func numberOfView(carousel:CarouselView) -> Int:  // total count of view
-func carousel(carousel:CarouselView, viewForIndex:Int) -> UIView?
+func numberOfView(carousel:CarouselView) -> Int  // total count of view
+func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView?
+
+```
+
+### CarouselViewController
+```Swift
+let carousel = CarouselViewController()
+carousel.type = .Loop   // set page loop or linear
+carousel.dataSource = self  // set data source page view
+carousel.reload()   // load datas
+
+carousel.autoScroll(2, increase: true)  // set auto scroll
+carousel.carouselDelegate = self    // set scroll delegate
+
+carousel.scrollToPage(1) // scroll to specify page
+carousel.visiblePageCount = 3 // number view show in one page
+
+
+// CarouselViewControllerDataSourse
+func numberOfViewController(carousel:CarouselViewController) -> Int  // total count of view controller
+func carousel(carousel:CarouselViewController, viewControllerForIndex index:Int) -> UIViewController?
+
 
 ```
 
@@ -161,6 +183,7 @@ CarouselSwift 是采用 UIScrollView 来实现的
 
 ## 使用
 
+### CarouselView
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
@@ -176,7 +199,27 @@ carousel.visiblePageCount = 3 // 单页可以显示 view 数量
 
 
 // CarouselViewDataSourse
-func numberOfView(carousel:CarouselView) -> Int:  // 返回用于显示 view 的总数
-func carousel(carousel:CarouselView, viewForIndex:Int) -> UIView? // index 对应的 view, nil则表示该 index 不显示
+func numberOfView(carousel:CarouselView) -> Int  // 返回用于显示 view 的总数
+func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView? // index 对应的 view, nil则表示该 index 不显示
+
+```
+
+### CarouselViewController
+```Swift
+let carousel = CarouselViewController()
+carousel.carouselView.type = .Loop   // 设置内容 page 是否循环
+carousel.dataSource = self  // 设置数据源 page view
+carousel.reload()   // 加载数据
+
+carousel.autoScroll(2, increase: true)  // 设置自动滚动
+carousel.carouselDelegate = self    // 设置滚动 delegate, 获取滚动进度
+
+carousel.scrollToPage(1) // 滚动到指定 page
+carousel.visiblePageCount = 3 // 单页可以显示 view 数量
+
+
+// CarouselViewControllerDataSourse
+func numberOfViewController(carousel:CarouselViewController) -> Int  // total count of view controller
+func carousel(carousel:CarouselViewController, viewControllerForIndex index:Int) -> UIViewController? // index 对应的 view controller, nil则表示该 index 不显示
 
 ```

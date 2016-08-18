@@ -15,11 +15,11 @@ class CarouselViewControllerDemo: CarouselViewController, CarouselViewController
         self.dataSource = self
         self.delegate = self
         
-        carouselView.type = .Loop
-        carouselView.reload()
+        self.type = .Loop
+        self.reload()
         
-        carouselView.scrollToPage(0)
-        carouselView.autoScroll(2, increase: true)
+        self.scrollToPage(0)
+        self.autoScroll(2, increase: true)
     }
 
     override func didReceiveMemoryWarning() {

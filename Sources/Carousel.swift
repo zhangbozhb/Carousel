@@ -1405,12 +1405,26 @@ private class CarouselViewInViewController:CarouselView {
     }
 }
 
+
 public class CarouselViewController: UIViewController {
+    /// visible page count
+    public var visiblePageCount:Int = 1 {
+        didSet {
+            _carouselView.visiblePageCount = visiblePageCount
+        }
+    }
+    /// buffer page count(page create but not visible)
+    public var bufferPageCount:Int = 1 {        // one side
+        didSet {
+            _carouselView.bufferPageCount = bufferPageCount
+        }
+    }
+    
     /// data source of page viewcontrollers
     public weak var dataSource:CarouselViewControllerDataSourse? {
         didSet {
             if dataSource !== oldValue {
-                (carouselView as? CarouselViewInViewController)?.vcDataSource = dataSource
+                _carouselView.vcDataSource = dataSource
             }
         }
     }
@@ -1419,12 +1433,42 @@ public class CarouselViewController: UIViewController {
     public weak var delegate:CarouselViewControllerDelegate? {
         didSet {
             if delegate !== oldValue {
-                (carouselView as? CarouselViewInViewController)?.vcDelegate = delegate
+                _carouselView.vcDelegate = delegate
             }
         }
     }
+    
+    /// reuse page size number, if negative will cache all pages( high memory usage)
+    public var cacheSize:Int = 0 {
+        didSet {
+            _carouselView.cacheSize = cacheSize
+        }
+    }
+    /// layout direction
+    public var direction = CarouselDirection.Horizontal {
+        didSet {
+            _carouselView.direction = direction
+        }
+    }
+    /// page layout in Loop or Linear
+    public var type = CarouselType.Linear {
+        didSet {
+            _carouselView.type = type
+        }
+    }
+    /// support paging
+    public var pagingRequired = true {
+        didSet {
+            _carouselView.pagingRequired = pagingRequired
+        }
+    }
+    
     /// if true viewWillAppear will resume auto scroll, viewDidDisappear will pause auto scroll
     public var autoScrolOnlyViewAppeared = true
+    
+    private var _carouselView: CarouselViewInViewController {
+        return view as! CarouselViewInViewController
+    }
     
     public var carouselView: CarouselView {
         return view as! CarouselView
@@ -1437,18 +1481,98 @@ public class CarouselViewController: UIViewController {
         carouselView.carouselViewController = self
         view = carouselView
     }
+}
+
+// usefull extension
+public extension CarouselViewController {
+    public var visiblePages:[CarouselPage] {
+        return _carouselView.visiblePages
+    }
     
-    public override func viewWillAppear(animated: Bool) {
+    public var firstVisiblePage:CarouselPage? {
+        return _carouselView.firstVisiblePage
+    }
+    
+    public var lastVisiblePage:CarouselPage? {
+        return _carouselView.lastVisiblePage
+    }
+    
+    public func scrollToPage(page:Int, animated:Bool = false) {
+        return _carouselView.scrollToPage(page, animated: animated)
+    }
+    
+    public func nextPage(animated:Bool = false) {
+        _carouselView.nextPage(animated)
+    }
+    
+    public func prePage(animated:Bool = false) {
+        _carouselView.prePage(animated)
+    }
+}
+
+// support auto scoll
+public extension CarouselViewController {
+    
+    override public func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         if autoScrolOnlyViewAppeared {
             carouselView.resumeAutoScroll()
         }
     }
     
-    public override func viewDidDisappear(animated: Bool) {
+    override public func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         if autoScrolOnlyViewAppeared {
             carouselView.pauseAutoScroll()
         }
+    }
+    
+    /**
+     auto scroll
+     default auto scroll is disable
+     - parameter timeInterval: scroll time interval
+     - parameter increase:     page increase or decrease
+     */
+    public func autoScroll(timeInterval:NSTimeInterval, increase:Bool) {
+        _carouselView.autoScroll(timeInterval, increase: increase)
+    }
+    
+    /**
+     stop auto scroll
+     */
+    public func stopAutoScroll() {
+        _carouselView.stopAutoScroll()
+    }
+    /**
+     pause auto scroll
+     */
+    public func pauseAutoScroll() {
+        _carouselView.pauseAutoScroll()
+    }
+    /**
+     resume auto scroll
+     if your never call autoScroll(_:increase), auto scroll will not work
+     */
+    public func resumeAutoScroll() {
+        _carouselView.resumeAutoScroll()
+    }
+}
+
+// add reload relative method
+public extension CarouselViewController {
+    public func reload() {
+        _carouselView.reload()
+    }
+    
+    public func reload(page page:Int) {
+        _carouselView.reload(page: page)
+    }
+    
+    public func reload(pages pages:[Int]) {
+        _carouselView.reload(pages: pages)
+    }
+    
+    public func reloadVisiblePages() {
+        _carouselView.reloadVisiblePages()
     }
 }
