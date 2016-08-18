@@ -28,6 +28,7 @@
 
 import UIKit
 
+
 public protocol CarouselViewDataSourse:class {
     /**
      number of view for carouse
@@ -49,7 +50,26 @@ public protocol CarouselViewDataSourse:class {
 }
 
 @objc public protocol CarouselViewDelegate:class {
+    /**
+     page scroll progress
+     
+     - parameter carousel:   instance of CarouselView
+     - parameter scrollFrom: from page(first visiable page)
+     - parameter to:         to page
+     - parameter progress:   progess for scroll: progress > 0, page grow direction, < 0 page decrease diretion
+     
+     - returns: Void
+     */
     optional func carousel(carousel:CarouselView, scrollFrom:Int, to:Int, progress:CGFloat)
+    /**
+     page did scroll from page to page
+     
+     - parameter carousel:      instance of CarouselView
+     - parameter didScrollFrom: from page(first visiable page)
+     - parameter to:            to page
+     
+     - returns: Void
+     */
     optional func carousel(carousel:CarouselView, didScrollFrom:Int, to:Int)
 }
 
@@ -90,12 +110,29 @@ public class CarouselPage {
         return self
     }
     
+    func reuse(view:UIView) {
+        guard self.view !== view else {
+            return
+        }
+        
+        let pre = self.view
+        self.view = view
+        if let c = pre.superview {
+            c.insertSubview(view, aboveSubview: pre)
+            view.frame = pre.frame
+            pre.removeFromSuperview()
+        }
+    }
+    
     public func uninstall() {
         view.removeFromSuperview()
     }
     
     func install(toView:UIView, frame:CGRect) {
-        toView.addSubview(view)
+        if view.superview !== toView {
+            view.removeFromSuperview()
+            toView.addSubview(view)
+        }
         view.frame = frame
     }
 }
@@ -681,7 +718,7 @@ extension CarouselView {
             pageViews.insert(pageView, atIndex: 0)
         }
         
-        pageView.install(self, frame: frameLinear(page))
+        pageView.install(self, frame: frameLoop(page))
         return pageView
     }
     
@@ -884,11 +921,11 @@ extension CarouselView {
 
 // support auto scoll
 public extension CarouselView {
-    func autoScrollNext() {
+    func autoScrollToNext() {
         nextPage(true)
     }
     
-    func autoScrollPre() {
+    func autoScrollToPre() {
         prePage(true)
     }
     
@@ -904,7 +941,7 @@ public extension CarouselView {
         autoScrollTimer = NSTimer.scheduledTimerWithTimeInterval(
             timeInterval,
             target: self,
-            selector: increase ? #selector(self.autoScrollNext) : #selector(self.autoScrollPre),
+            selector: increase ? #selector(self.autoScrollToNext) : #selector(self.autoScrollToPre),
             userInfo: nil,
             repeats: true)
     }
@@ -941,6 +978,87 @@ public extension CarouselView {
     }
 }
 
+// add reload relative method
+public extension CarouselView {
+    @inline(__always) private func reload(page:Int, withCount count: Int) {
+        switch type {
+        case .Linear:
+            if page >= 0 && page < count {
+                let p = CarouselPage.init(page: page, count: count, view: fetchPage(page))
+                if let _ = reusablePages.cachePage(page, count: count, removeFromCache: false) {
+                    reusablePages.push(p, uninstall: true, ignoreSizeLimit: true)
+                } else {
+                    for vp in visiblePages {
+                        if vp.page == p.page {
+                            vp.reuse(p.view)
+                            break
+                        }
+                    }
+                }
+            }
+        case .Loop:
+            let validPage = formatedPage(page, ofCount: count)
+            let p = CarouselPage.init(page: page, count: count, view: fetchPage(validPage))
+            if let _ = reusablePages.cachePage(page, count: count, removeFromCache: false) {
+                reusablePages.push(p, uninstall: true, ignoreSizeLimit: true)
+            } else {
+                for vp in visiblePages {
+                    if vp.validPage == p.validPage {
+                        vp.reuse(p.view)
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
+    public func reload(page page:Int) {
+        guard let ds = dataSource where ds.numberOfView(self) > 0 else {
+            reload()
+            return
+        }
+        
+        let count = ds.numberOfView(self)
+        guard let preCount = visiblePages.first?.count where preCount != count else {
+            reload()
+            return
+        }
+        
+        reload(page, withCount: count)
+    }
+    
+    public func reload(pages pages:[Int]) {
+        guard let ds = dataSource where ds.numberOfView(self) > 0 else {
+            reload()
+            return
+        }
+        
+        let count = ds.numberOfView(self)
+        guard let preCount = visiblePages.first?.count where preCount != count else {
+            reload()
+            return
+        }
+        for page in Array(Set(pages)) {
+            reload(page, withCount: count)
+        }
+    }
+    
+    public func reloadVisiblePages() {
+        guard let ds = dataSource where ds.numberOfView(self) > 0 else {
+            reload()
+            return
+        }
+        
+        let count = ds.numberOfView(self)
+        guard let preCount = visiblePages.first?.count where preCount != count else {
+            reload()
+            return
+        }
+        for vp in visiblePages {
+            vp.reuse(fetchPage(vp.validPage))
+        }
+    }
+}
 
 class CarouselViewDelegateWrapper:NSObject, UIScrollViewDelegate {
     weak var source:UIScrollViewDelegate?
