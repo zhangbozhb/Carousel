@@ -411,6 +411,7 @@ public class CarouselView: UIScrollView {
     }
     
     deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
         for path in kPaths {
             removeObserver(self, forKeyPath: path)
         }
@@ -436,6 +437,9 @@ public class CarouselView: UIScrollView {
         _delegateWrapper.wrapper = self
         _preSize = frame.size
         
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationDidBecomeActiveNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationWillResignActiveNotification, object: nil)
+        
         addObserver(self, forKeyPath: kdelegatePath, options: .New, context: &contextKVO)
         kPaths.append(kdelegatePath)
         addObserver(self, forKeyPath: kpagingEnabled, options: .New, context: &contextKVO)
@@ -457,6 +461,18 @@ public class CarouselView: UIScrollView {
             if let value = change?[NSKeyValueChangeNewKey] as? NSNumber where value.boolValue {
                 pagingEnabled = false
             }
+        }
+    }
+    
+    final func handleNotifications(notification:NSNotification) {
+        UIApplicationWillResignActiveNotification
+        switch notification.name {
+        case UIApplicationDidBecomeActiveNotification:
+            resumeAutoScroll()
+        case UIApplicationWillResignActiveNotification:
+            pauseAutoScroll()
+        default:
+            break
         }
     }
     
@@ -1390,7 +1406,7 @@ private class CarouselViewInViewController:CarouselView {
 }
 
 public class CarouselViewController: UIViewController {
-    /// data source of page views
+    /// data source of page viewcontrollers
     public weak var dataSource:CarouselViewControllerDataSourse? {
         didSet {
             if dataSource !== oldValue {
@@ -1399,6 +1415,7 @@ public class CarouselViewController: UIViewController {
         }
     }
     
+    /// scroll delegate
     public weak var delegate:CarouselViewControllerDelegate? {
         didSet {
             if delegate !== oldValue {
@@ -1406,6 +1423,8 @@ public class CarouselViewController: UIViewController {
             }
         }
     }
+    /// if true viewWillAppear will resume auto scroll, viewDidDisappear will pause auto scroll
+    public var autoScrolOnlyViewAppeared = true
     
     public var carouselView: CarouselView {
         return view as! CarouselView
@@ -1419,7 +1438,17 @@ public class CarouselViewController: UIViewController {
         view = carouselView
     }
     
-    override public func viewDidLoad() {
-        super.viewDidLoad()
+    public override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        if autoScrolOnlyViewAppeared {
+            carouselView.resumeAutoScroll()
+        }
+    }
+    
+    public override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        if autoScrolOnlyViewAppeared {
+            carouselView.pauseAutoScroll()
+        }
     }
 }

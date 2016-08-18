@@ -15,7 +15,7 @@ class CarouselViewControllerDemo: CarouselViewController, CarouselViewController
         self.dataSource = self
         self.delegate = self
         
-        
+        carouselView.type = .Loop
         carouselView.reload()
         
         carouselView.scrollToPage(0)
