@@ -46,7 +46,7 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         return Int(slidePageCount.value)
     }
     
-    func carousel(carousel: CarouselView, viewForIndex: Int) -> UIView? {
+    func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView? {
         
         let padding:CGFloat = 20
         let v = UIView()
@@ -55,7 +55,7 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         
         let label = UILabel()
         label.textAlignment = .Center
-        label.text = "P \(viewForIndex)"
+        label.text = "P \(index)"
         label.backgroundColor = UIColor.purpleColor()
         v.addSubview(label)
         
@@ -66,10 +66,9 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         let cy = label.centerYAnchor.constraintEqualToAnchor(v.centerYAnchor)
         
         NSLayoutConstraint.activateConstraints([w, h, cx, cy])
-//        label.addConstraints([w, h, cx, cy])
         v.layer.borderColor = UIColor.redColor().CGColor
         v.layer.borderWidth = 1
-        return (viewForIndex % 6 == 0 && viewForIndex != 0) ? nil : v
+        return (index % 6 == 0 && index != 0) ? nil : v
     }
     
     @IBAction func changeDirection(sender: UISwitch) {
@@ -114,12 +113,11 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
     
     // CarouselViewDelegate
     func carousel(carousel: CarouselView, didScrollFrom: Int, to: Int) {
-        print("didScrollFrom \(didScrollFrom) \(to)")
+        print("CarouselView didScrollFrom \(didScrollFrom) \(to)")
     }
     
     func carousel(carousel: CarouselView, scrollFrom: Int, to: Int, progress: CGFloat) {
-        print("scrollFrom \(scrollFrom) \(to) \(progress)")
+        print("CarouselView scrollFrom \(scrollFrom) \(to) \(progress)")
     }
-    
 }
 

@@ -45,7 +45,7 @@ CarouselSwift implement carouse effect. Available Features:
     | multi cell in one page | √  | √  | √ | × |
     | pagingEnable  | √  | ×  | ×  | √ |
     | UIPanGestureRecognizer delegate modify  | √ | × |  × |  × |
-    | scroll progress | √ |√（ indirect ）|  √ （ indirect ） | × |
+    | scroll progress | √ | √(indirect) | √ (indirect) | × |
 
 	According comparison above，you may find that CarouselSwift has much in common to UIPageViewController, but more simple to use.
 	* CarouselSwift VS Other similar component：
@@ -134,11 +134,11 @@ CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下�
     | 内 容 循 环 排 列  | √  | ×  | ×  | √ |
     | cell 是 否 要 求 相 同  | √  | ×  | ×  | √ |
     | 重 用 优 化 | √  | √  | √  | √ |
-    | cell 是 否 可 以 重 用  | ×  | √  | √ | √ |
+    | cell 是 否 可 以 重 用  | ×(部分) | √  | √ | √ |
     | page 中 显 示 多 个 cell | √  | √  | √ | × |
     | 是 否 支 持 分 页  | √  | ×  | ×  | √ |
     | UIPanGestureRecognizer delegate 修 改  | √ | × |  × |  × |
-    | 滑 动 进 度 | √ |√（ 间 接 ）|  √ （ 间 接 ） | × |
+    | 滑 动 进 度 | √ | √(间接)|  √(间接) | × |
 
 	通过上面的比较，可以发现 CarouselSwift 和 UIPageViewController 有很大的相似性（其实差不多就是模仿 UIPageViewController 来做的），使用起来更为简单
 	* CarouselSwift 与其他类似功能组建比较：
