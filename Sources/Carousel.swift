@@ -62,10 +62,10 @@ private func formatedPage(page:Int, ofCount count:Int) -> Int {
 }
 
 public class CarouselPage {
-    private(set) var page:Int = 0
+    private var page:Int = 0
     private(set) var count:Int = 0
-    
     private(set) var view = UIView()
+    
     
     private init(page:Int) {
         self.page = page
@@ -93,6 +93,11 @@ public class CarouselPage {
     public func uninstall() {
         view.removeFromSuperview()
     }
+    
+    func install(toView:UIView, frame:CGRect) {
+        toView.addSubview(view)
+        view.frame = frame
+    }
 }
 
 extension CarouselPage {
@@ -108,8 +113,18 @@ class CarouselPageCache {
     
     private var queueIndex:Int = 0
 
-    func push(page:CarouselPage) {
-        page.uninstall()
+    /**
+     cache page
+     
+     - parameter page:            page to cache
+     - parameter uninstall:       if true uninstall page
+     - parameter ignoreSizeLimit: if true ignore size limit, you should call limitToCacheSize manually
+     */
+    func push(page:CarouselPage, uninstall:Bool = true, ignoreSizeLimit:Bool = false) {
+        if uninstall {
+            page.uninstall()
+        }
+        
         if cachedPages.isEmpty {
             pageCount = page.count
         } else if pageCount != page.count {
@@ -118,6 +133,10 @@ class CarouselPageCache {
         }
         queueIndex += 1
         cachedPages[page.cacheKey] = (queueIndex, page)
+        
+        if !ignoreSizeLimit {
+            limitToCacheSize()
+        }
     }
     
     func cachePage(page:Int, count:Int, removeFromCache:Bool = true) -> CarouselPage? {
@@ -348,7 +367,7 @@ public class CarouselView: UIScrollView {
         let pre = pageViews
         pageViews = []
         for page in pre {
-            reusablePages.push(page)
+            reusablePages.push(page, uninstall: false, ignoreSizeLimit: true)
         }
         updateVisiblePage()
         updateContentSize()
@@ -481,8 +500,7 @@ extension CarouselView {
             pageViews.insert(pageView, atIndex: 0)
         }
         
-        addSubview(pageView.view)
-        pageView.view.frame = frameLinear(page)
+        pageView.install(self, frame: frameLinear(page))
         return pageView
     }
     
@@ -500,11 +518,11 @@ extension CarouselView {
             
             // right：remove page
             while let page = pageViews.last where page.view.frame.minX + threshold > maxX {
-                reusablePages.push(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
             // left：remove page
             while let page = pageViews.first where page.view.frame.maxX - threshold < minX {
-                reusablePages.push(pageViews.removeFirst())
+                reusablePages.push(pageViews.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
             // handle empty
@@ -526,11 +544,11 @@ extension CarouselView {
             
             // tail：remove page
             while let page = pageViews.last where page.view.frame.minY + threshold > maxY {
-                reusablePages.push(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
             // top：remove page
             while let page = pageViews.first where page.view.frame.maxY - threshold < minY {
-                reusablePages.push(pageViews.removeFirst())
+                reusablePages.push(pageViews.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
             // handle empty
@@ -663,8 +681,7 @@ extension CarouselView {
             pageViews.insert(pageView, atIndex: 0)
         }
         
-        addSubview(pageView.view)
-        pageView.view.frame = frameLoop(page)
+        pageView.install(self, frame: frameLinear(page))
         return pageView
     }
     
@@ -683,11 +700,11 @@ extension CarouselView {
             
             // right：remove page
             while let page = pageViews.last where page.view.frame.minX + threshold > maxX {
-                reusablePages.push(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
             // left：remove page
             while let page = pageViews.first where page.view.frame.maxX - threshold < minX {
-                reusablePages.push(pageViews.removeFirst())
+                reusablePages.push(pageViews.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
             // handle empty
@@ -710,11 +727,11 @@ extension CarouselView {
             
             // tail：remove page
             while let page = pageViews.last where page.view.frame.minY + threshold > maxY {
-                reusablePages.push(pageViews.removeLast())
+                reusablePages.push(pageViews.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
             // top：remove page
             while let page = pageViews.first where page.view.frame.maxY - threshold < minY {
-                reusablePages.push(pageViews.removeFirst())
+                reusablePages.push(pageViews.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
             // handle empty
