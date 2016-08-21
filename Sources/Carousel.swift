@@ -117,6 +117,14 @@ private func formatedPage(page:Int, ofCount count:Int) -> Int {
     return count > 0 ? p % count : 0
 }
 
+private func formatedPage(page:CGFloat, ofCount count:CGFloat) -> CGFloat {
+    var p = page
+    while p < 0 {
+        p += 100 * count
+    }
+    return count > 0 ? p % count : 0
+}
+
 public class CarouselPage {
     private var page:Int = 0
     private(set) var count:Int = 0
@@ -1041,6 +1049,18 @@ extension CarouselView {
         return page
     }
     
+    public var firstVisiblePageIndex:CGFloat {
+        guard let count = pageViews.first?.count where count > 0 else {
+            return 0
+        }
+        switch direction {
+        case .Horizontal:
+            return formatedPage(contentOffset.x / pageWidth, ofCount: CGFloat(count))
+        case .Vertical:
+            return formatedPage(contentOffset.y / pageHeight, ofCount: CGFloat(count))
+        }
+    }
+    
     public func scrollToPage(page:Int, animated:Bool = false) {
         switch type {
         case .Linear:
@@ -1528,6 +1548,10 @@ public extension CarouselViewController {
     
     public var lastVisiblePage:CarouselPage? {
         return _carouselView.lastVisiblePage
+    }
+    
+    public var firstVisiblePageIndex:CGFloat {
+        return _carouselView.firstVisiblePageIndex
     }
     
     public func scrollToPage(page:Int, animated:Bool = false) {
