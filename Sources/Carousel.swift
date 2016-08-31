@@ -126,16 +126,16 @@ private func formatedPage(page:CGFloat, ofCount count:CGFloat) -> CGFloat {
 }
 
 public class CarouselPage {
-    private var page:Int = 0
+    private var rawPage:Int = 0
     private(set) var count:Int = 0
     private(set) var view = UIView()
     
-    private init(page:Int) {
-        self.page = page
+    private init(rawPage:Int) {
+        self.rawPage = rawPage
     }
     
-    init(page:Int, count:Int, view:UIView) {
-        self.page = page
+    init(rawPage:Int, count:Int, view:UIView) {
+        self.rawPage = rawPage
         self.count = count
         self.view = view
     }
@@ -145,11 +145,11 @@ public class CarouselPage {
     }
     
     public var validPage:Int {
-        return formatedPage(page, ofCount: count)
+        return formatedPage(rawPage, ofCount: count)
     }
     
-    func reuse(page:Int) -> CarouselPage {
-        self.page = page
+    func reuse(rawPage:Int) -> CarouselPage {
+        self.rawPage = rawPage
         return self
     }
     
@@ -208,8 +208,8 @@ private class CarouselPageView: CarouselPage {
     private weak var carouselView: CarouselView?
     private weak var delegate:CarouselViewDelegate?
     
-    init(page:Int, count:Int, view:UIView, carousel: CarouselView, delegate:CarouselViewDelegate?) {
-        super.init(page: page, count:count, view: view)
+    init(rawPage:Int, count:Int, view:UIView, carousel: CarouselView, delegate:CarouselViewDelegate?) {
+        super.init(rawPage: rawPage, count:count, view: view)
         self.carouselView = carousel
         self.delegate = delegate
     }
@@ -516,9 +516,9 @@ public class CarouselView: UIScrollView {
         }
     }
     
-    private func fetchPage(validPage: Int, count:Int, page:Int) -> CarouselPage {
+    private func fetchPage(validPage: Int, count:Int, rawPage:Int) -> CarouselPage {
         let view = dataSource?.carousel(self, viewForIndex: validPage) ?? UIView()
-        return CarouselPageView.init(page: page, count: count, view: view, carousel:self, delegate: carouselDelegate)
+        return CarouselPageView.init(rawPage: rawPage, count: count, view: view, carousel:self, delegate: carouselDelegate)
     }
     
     @inline(__always) func numberOfView() -> Int? {
@@ -620,7 +620,7 @@ public class CarouselView: UIScrollView {
 // 线性page
 extension CarouselView {
     private func updateScrollProgressLinear() {
-        if let first = firstVisiblePage where first.page < first.count {
+        if let first = firstVisiblePage where first.rawPage < first.count {
             let validPage = first.validPage
             if validPage != _preFirstPage {
                 carouselDidScrollFrom(_preFirstPage, to: validPage)
@@ -629,7 +629,7 @@ extension CarouselView {
                 switch direction {
                 case .Horizontal:
                     let increasePage = _preContentOffset.x < contentOffset.x
-                    let next = increasePage ? first.page + 1 : first.page - 1
+                    let next = increasePage ? first.rawPage + 1 : first.rawPage - 1
                     if next > 0 && next < first.count {
                         var progress = contentOffset.x / pageWidth
                         progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
@@ -637,7 +637,7 @@ extension CarouselView {
                     }
                 case .Vertical:
                     let increasePage = _preContentOffset.y < contentOffset.y
-                    let next = increasePage ? first.page + 1 : first.page - 1
+                    let next = increasePage ? first.rawPage + 1 : first.rawPage - 1
                     if next > 0 && next < first.count {
                         var progress = contentOffset.y / pageHeight
                         progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
@@ -672,26 +672,26 @@ extension CarouselView {
         reusablePages.clear()
     }
     
-    private func frameLinear(page:Int) -> CGRect {
+    private func frameLinear(rawPage:Int) -> CGRect {
         switch direction {
         case .Horizontal:
             let pageWidth = self.pageWidth
-            return CGRectMake(CGFloat(page) * pageWidth, 0, pageWidth, pageHeight)
+            return CGRectMake(CGFloat(rawPage) * pageWidth, 0, pageWidth, pageHeight)
         case .Vertical:
             let pageHeight = self.pageHeight
-            return CGRectMake(0, CGFloat(page) * pageHeight, pageWidth, pageHeight)
+            return CGRectMake(0, CGFloat(rawPage) * pageHeight, pageWidth, pageHeight)
         }
     }
     
-    private func setupPageLinear(page:Int, count:Int, tail:Bool = true) -> CarouselPage {
-        let pageView = reusablePages.cachePage(page, count: count, removeFromCache: true)?.reuse(page) ?? fetchPage(page, count: count, page: page)
+    private func setupPageLinear(rawPage:Int, count:Int, tail:Bool = true) -> CarouselPage {
+        let pageView = reusablePages.cachePage(rawPage, count: count, removeFromCache: true)?.reuse(rawPage) ?? fetchPage(rawPage, count: count, rawPage: rawPage)
         if tail {
             pageViews.append(pageView)
         } else {
             pageViews.insert(pageView, atIndex: 0)
         }
         
-        pageView.install(self, frame: frameLinear(page))
+        pageView.install(self, frame: frameLinear(rawPage))
         return pageView
     }
     
@@ -720,12 +720,12 @@ extension CarouselView {
                 setupPageLinear(Int(contentOffset.x / pageWidth), count: count)
             }
             // right：add page
-            while let page = pageViews.last where page.page < count - 1 && page.view.frame.maxX + threshold < maxX {
-                setupPageLinear(page.page + 1, count: count, tail: true)
+            while let page = pageViews.last where page.rawPage < count - 1 && page.view.frame.maxX + threshold < maxX {
+                setupPageLinear(page.rawPage + 1, count: count, tail: true)
             }
             // left：add page
-            while let page = pageViews.first where page.page > 0 && page.view.frame.minX - threshold > minX {
-                setupPageLinear(page.page - 1, count: count, tail: false)
+            while let page = pageViews.first where page.rawPage > 0 && page.view.frame.minX - threshold > minX {
+                setupPageLinear(page.rawPage - 1, count: count, tail: false)
             }
         } else {
             let pageHeight = self.pageHeight
@@ -746,12 +746,12 @@ extension CarouselView {
                 setupPageLinear(Int(contentOffset.y / pageHeight), count: count)
             }
             // tail：add page
-            while let page = pageViews.last where page.page < count - 1 && page.view.frame.maxY + threshold < maxY {
-                setupPageLinear(page.page + 1, count: count, tail: true)
+            while let page = pageViews.last where page.rawPage < count - 1 && page.view.frame.maxY + threshold < maxY {
+                setupPageLinear(page.rawPage + 1, count: count, tail: true)
             }
             // top：add page
-            while let page = pageViews.first where page.page > 0 && page.view.frame.minY - threshold > minY {
-                setupPageLinear(page.page - 1, count: count, tail: false)
+            while let page = pageViews.first where page.rawPage > 0 && page.view.frame.minY - threshold > minY {
+                setupPageLinear(page.rawPage - 1, count: count, tail: false)
             }
         }
     }
@@ -774,13 +774,13 @@ extension CarouselView {
                 switch direction {
                 case .Horizontal:
                     let increasePage = _preContentOffset.x < contentOffset.x
-                    let next = formatedPage(increasePage ? first.page + 1 : first.page - 1, ofCount: first.count)
+                    let next = formatedPage(increasePage ? first.rawPage + 1 : first.rawPage - 1, ofCount: first.count)
                     var progress = contentOffset.x / pageWidth
                     progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
                     carouselScrollFrom(_preFirstPage, to: next, progress: progress)
                 case .Vertical:
                     let increasePage = _preContentOffset.y < contentOffset.y
-                    let next = formatedPage(increasePage ? first.page + 1 : first.page - 1, ofCount: first.count)
+                    let next = formatedPage(increasePage ? first.rawPage + 1 : first.rawPage - 1, ofCount: first.count)
                     var progress = contentOffset.y / pageHeight
                     progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
                     carouselScrollFrom(_preFirstPage, to: next, progress: progress)
@@ -855,27 +855,27 @@ extension CarouselView {
         reusablePages.clear()
     }
     
-    private func frameLoop(page:Int) -> CGRect {
+    private func frameLoop(rawPage:Int) -> CGRect {
         switch direction {
         case .Horizontal:
             let pageWidth = self.pageWidth
-            return CGRectMake(CGFloat(page + _offsetPage) * pageWidth, 0, pageWidth, pageHeight)
+            return CGRectMake(CGFloat(rawPage + _offsetPage) * pageWidth, 0, pageWidth, pageHeight)
         case .Vertical:
             let pageHeight = self.pageHeight
-            return CGRectMake(0, CGFloat(page + _offsetPage) * pageHeight, pageWidth, pageHeight)
+            return CGRectMake(0, CGFloat(rawPage + _offsetPage) * pageHeight, pageWidth, pageHeight)
         }
     }
     
-    private func setupPageLoop(page:Int, count:Int, tail:Bool) -> CarouselPage {
-        let validPage = formatedPage(page, ofCount: count)
-        let pageView = reusablePages.cachePage(validPage, count: count, removeFromCache: true)?.reuse(page) ?? fetchPage(validPage, count: count, page: page)
+    private func setupPageLoop(rawPage:Int, count:Int, tail:Bool) -> CarouselPage {
+        let validPage = formatedPage(rawPage, ofCount: count)
+        let pageView = reusablePages.cachePage(validPage, count: count, removeFromCache: true)?.reuse(rawPage) ?? fetchPage(validPage, count: count, rawPage: rawPage)
         if tail {
             pageViews.append(pageView)
         } else {
             pageViews.insert(pageView, atIndex: 0)
         }
         
-        pageView.install(self, frame: frameLoop(page))
+        pageView.install(self, frame: frameLoop(rawPage))
         return pageView
     }
     
@@ -906,11 +906,11 @@ extension CarouselView {
             }
             // right：add page
             while let page = pageViews.last where page.view.frame.maxX + threshold < maxX {
-                setupPageLoop(page.page + 1, count: count, tail: true)
+                setupPageLoop(page.rawPage + 1, count: count, tail: true)
             }
             // left：add page
             while let page = pageViews.first where page.view.frame.minX - threshold > minX {
-                setupPageLoop(page.page - 1, count: count, tail: false)
+                setupPageLoop(page.rawPage - 1, count: count, tail: false)
             }
         } else {
             let pageHeight = self.pageHeight
@@ -933,11 +933,11 @@ extension CarouselView {
             }
             // tail：add page
             while let page = pageViews.last where page.view.frame.maxY + threshold < maxY {
-                setupPageLoop(page.page + 1, count: count, tail: true)
+                setupPageLoop(page.rawPage + 1, count: count, tail: true)
             }
             // top：add page
             while let page = pageViews.first where page.view.frame.minY - threshold > minY {
-                setupPageLoop(page.page - 1, count: count, tail: false)
+                setupPageLoop(page.rawPage - 1, count: count, tail: false)
             }
         }
     }
@@ -1091,14 +1091,14 @@ extension CarouselView {
         guard let first = firstVisiblePage else {
             return
         }
-        scrollToPage(first.page + 1, animated: animated)
+        scrollToPage(first.rawPage + 1, animated: animated)
     }
     
     public func prePage(animated:Bool = false) {
         guard let first = firstVisiblePage else {
             return
         }
-        scrollToPage(first.page - 1, animated: animated)
+        scrollToPage(first.rawPage - 1, animated: animated)
     }
 }
 
@@ -1159,12 +1159,12 @@ public extension CarouselView {
         switch type {
         case .Linear:
             if page >= 0 && page < count {
-                let p = fetchPage(page, count: count, page: page)
+                let p = fetchPage(page, count: count, rawPage: page)
                 if let _ = reusablePages.cachePage(page, count: count, removeFromCache: false) {
                     reusablePages.push(p, uninstall: true, ignoreSizeLimit: true)
                 } else {
                     for vp in visiblePages {
-                        if vp.page == p.page {
+                        if vp.rawPage == p.rawPage {
                             vp.reuse(p.view)
                             break
                         }
@@ -1173,7 +1173,7 @@ public extension CarouselView {
             }
         case .Loop:
             let validPage = formatedPage(page, ofCount: count)
-            let p = fetchPage(validPage, count: count, page: page)
+            let p = fetchPage(validPage, count: count, rawPage: page)
             if let _ = reusablePages.cachePage(page, count: count, removeFromCache: false) {
                 reusablePages.push(p, uninstall: true, ignoreSizeLimit: true)
             } else {
@@ -1228,7 +1228,7 @@ public extension CarouselView {
         }
         
         for vp in visiblePages {
-            vp.reuse(fetchPage(vp.validPage, count: vp.count, page: vp.page).view)
+            vp.reuse(fetchPage(vp.validPage, count: vp.count, rawPage: vp.rawPage).view)
         }
     }
 }
@@ -1389,8 +1389,8 @@ private class CarouselPageInViewController:CarouselPage {
     private weak var carouselViewController:CarouselViewController?
     private weak var vcDelegate:CarouselViewControllerDelegate?
     
-    init(page: Int, count: Int, viewController: UIViewController, carouselViewController:CarouselViewController?, vcDelegate:CarouselViewControllerDelegate?) {
-        super.init(page: page, count: count, view: viewController.view)
+    init(rawPage: Int, count: Int, viewController: UIViewController, carouselViewController:CarouselViewController?, vcDelegate:CarouselViewControllerDelegate?) {
+        super.init(rawPage: rawPage, count: count, view: viewController.view)
         
         self.viewController = viewController
         self.carouselViewController = carouselViewController
@@ -1440,14 +1440,14 @@ private class CarouselViewInViewController:CarouselView {
         return vcDataSource?.numberOfViewController(vc)
     }
     
-    override func fetchPage(validPage: Int, count: Int, page: Int) -> CarouselPage {
+    override func fetchPage(validPage: Int, count: Int, rawPage: Int) -> CarouselPage {
         var tvc:UIViewController!
         if let vc = carouselViewController, vc2 = vcDataSource?.carousel(vc, viewControllerForIndex: validPage) {
             tvc = vc2
         } else {
             tvc = UIViewController()
         }
-        return CarouselPageInViewController.init(page: page, count: count, viewController: tvc, carouselViewController: carouselViewController, vcDelegate: vcDelegate)
+        return CarouselPageInViewController.init(rawPage: rawPage, count: count, viewController: tvc, carouselViewController: carouselViewController, vcDelegate: vcDelegate)
     }
     
     private override func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
