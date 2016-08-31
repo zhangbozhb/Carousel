@@ -370,7 +370,7 @@ public class CarouselView: UIScrollView {
     private var _preSize:CGSize = CGSize()
     private var _preFirstPage:Int = 0
     private var _preContentOffset = CGPointZero
-    private var _delegateWrapper = CarouselViewDelegateWrapper()
+    private var _delegateWrapper = CarouselScrollViewDelegateWrapper()
     
     /// cached page size: default is zero, if is negative will cache all
     private var reusablePageSize:Int {
@@ -791,6 +791,7 @@ extension CarouselView {
     }
     
     private func updateContentOffsetLoop() {
+        _delegateWrapper.ignoreScrollEvent = false
         guard let count = numberOfView() where count > visiblePageCount else {
             return
         }
@@ -803,9 +804,11 @@ extension CarouselView {
             let minX = bufferWidth
             let maxX = totalPageWidth + bufferWidth
             if contentOffset.x > maxX {
+                _delegateWrapper.ignoreScrollEvent = true
                 contentOffset.x -= totalPageWidth
                 updateVisiblePageLoop()
             } else if contentOffset.x < minX {
+                _delegateWrapper.ignoreScrollEvent = true
                 contentOffset.x += totalPageWidth
                 updateVisiblePageLoop()
             }
@@ -816,9 +819,11 @@ extension CarouselView {
             let minY = bufferHeight
             let maxY = totalPageHeight + bufferHeight
             if contentOffset.y > maxY {
+                _delegateWrapper.ignoreScrollEvent = true
                 contentOffset.y -= bufferHeight
                 updateVisiblePageLoop()
             } else if contentOffset.y < minY {
+                _delegateWrapper.ignoreScrollEvent = true
                 contentOffset.y += bufferHeight
                 updateVisiblePageLoop()
             }
@@ -1228,9 +1233,11 @@ public extension CarouselView {
     }
 }
 
-class CarouselViewDelegateWrapper:NSObject, UIScrollViewDelegate {
+class CarouselScrollViewDelegateWrapper:NSObject, UIScrollViewDelegate {
     weak var source:UIScrollViewDelegate?
     weak var wrapper:UIScrollViewDelegate?
+    /// ignore scroll event: use if customer set content offset and want not fire delegate scrollViewDidScroll:
+    var ignoreScrollEvent = false
     
     func scrollViewDidScroll(scrollView: UIScrollView) {
         wrapper?.scrollViewDidScroll?(scrollView)
