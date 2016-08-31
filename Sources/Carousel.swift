@@ -51,27 +51,6 @@ public protocol CarouselViewDataSourse:class {
 
 @objc public protocol CarouselViewDelegate:class {
     /**
-     page scroll progress
-     
-     - parameter carousel: instance of CarouselView
-     - parameter from:     from page(first visiable page)
-     - parameter to:       to page
-     - parameter progress: progess for scroll: progress > 0, page grow direction, < 0 page decrease diretion
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, scrollFrom from:Int, to:Int, progress:CGFloat)
-    /**
-     page did scroll from page to page
-     
-     - parameter carousel: instance of CarouselView
-     - parameter from:     from page(first visiable page)
-     - parameter to:       to page
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, didScrollFrom from:Int, to:Int)
-    /**
      page will add to carousel
      
      - parameter carousel: instance of CarouselView
@@ -107,6 +86,41 @@ public protocol CarouselViewDataSourse:class {
      - returns: Void
      */
     optional func carousel(carousel:CarouselView, didUninstallCell cell:Int)
+    
+    
+
+    // MARK: scroll relate delegate
+    /**
+     page scroll progress
+     
+     - parameter carousel: instance of CarouselView
+     - parameter from:     from page(first visiable page)
+     - parameter to:       to page
+     - parameter progress: progess for scroll: progress > 0, page grow direction, < 0 page decrease diretion
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, scrollFrom from:Int, to:Int, progress:CGFloat)
+    /**
+     page did scroll from page to page
+     
+     - parameter carousel: instance of CarouselView
+     - parameter from:     from page(first visiable page)
+     - parameter to:       to page
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, didScrollFrom from:Int, to:Int)
+    
+
+    optional func carouselDidScroll(carousel:CarouselView)
+    optional func carouselWillBeginDragging(carousel:CarouselView)
+    optional func carouselDidEndDragging(carousel:CarouselView, willDecelerate decelerate: Bool)
+    
+    optional func carouselWillBeginDecelerating(carousel:CarouselView)
+    optional func carouselDidEndDecelerating(carousel:CarouselView)
+    
+    optional func carouselDidEndScrollingAnimation(carousel:CarouselView)
 }
 
 private func formatedPage(page:Int, ofCount count:Int) -> Int {
@@ -345,7 +359,7 @@ public extension CarouselView {
 
 public class CarouselView: UIScrollView {
     private var baseInited = false
-    /// visible page count
+    /// visible cell count
     public var cellPerPage:Int = 1 {
         didSet {
             if cellPerPage <= 0 {
@@ -954,6 +968,7 @@ extension CarouselView {
 
 // support page enable and adjust content offset
 extension CarouselView: UIScrollViewDelegate {
+    // this deleate handle paging
     public func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         guard pagingRequired else {
             return
@@ -971,30 +986,44 @@ extension CarouselView: UIScrollViewDelegate {
             targetContentOffset.memory.y = targetY
         }
     }
-    
+    // handle did scroll
     public func scrollViewDidScroll(scrollView: UIScrollView) {
         // update scroll progess
         updateScrollProgress()
         // update content offset(to restrict position) if needed
         updateContentOffset()
+        
+        carouselDelegate?.carouselDidScroll?(self)
+    }
+    
+    public func scrollViewWillBeginDecelerating(scrollView: UIScrollView) {
+        carouselDelegate?.carouselWillBeginDragging?(self)
     }
     
     public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         // update content offset(to restrict position) if needed
         updateContentOffset()
+        
+        carouselDelegate?.carouselDidEndDecelerating?(self)
     }
     
     public func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
         // update content offset(to restrict position) if needed
         updateContentOffset()
+        
+        carouselDelegate?.carouselDidEndScrollingAnimation?(self)
     }
     
     public func scrollViewWillBeginDragging(scrollView: UIScrollView) {
         pauseAutoScroll()
+        
+        carouselDelegate?.carouselWillBeginDragging?(self)
     }
     
     public func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         resumeAutoScroll()
+        
+        carouselDelegate?.carouselDidEndDragging?(self, willDecelerate: decelerate)
     }
 }
 
@@ -1337,27 +1366,6 @@ public protocol CarouselViewControllerDataSourse:class {
 
 @objc public protocol CarouselViewControllerDelegate:class {
     /**
-     page scroll progress
-     
-     - parameter carousel: instance of CarouselViewController
-     - parameter from:     from page(first visiable page)
-     - parameter to:       to page
-     - parameter progress: progess for scroll: progress > 0, page grow direction, < 0 page decrease diretion
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselViewController, scrollFrom from:Int, to:Int, progress:CGFloat)
-    /**
-     page did scroll from page to page
-     
-     - parameter carousel: instance of CarouselViewController
-     - parameter from:     from page(first visiable page)
-     - parameter to:       to page
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselViewController, didScrollFrom from:Int, to:Int)
-    /**
      page will add to carousel
      
      - parameter carousel: instance of CarouselViewController
@@ -1393,6 +1401,39 @@ public protocol CarouselViewControllerDataSourse:class {
      - returns: Void
      */
     optional func carousel(carousel:CarouselViewController, didUninstallCell cell:Int)
+    
+    
+    // MARK: scroll relate delegate
+    /**
+     page scroll progress
+     
+     - parameter carousel: instance of CarouselViewController
+     - parameter from:     from page(first visiable page)
+     - parameter to:       to page
+     - parameter progress: progess for scroll: progress > 0, page grow direction, < 0 page decrease diretion
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselViewController, scrollFrom from:Int, to:Int, progress:CGFloat)
+    /**
+     page did scroll from page to page
+     
+     - parameter carousel: instance of CarouselViewController
+     - parameter from:     from page(first visiable page)
+     - parameter to:       to page
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselViewController, didScrollFrom from:Int, to:Int)
+    
+    optional func carouselDidScroll(carousel:CarouselViewController)
+    optional func carouselWillBeginDragging(carousel:CarouselViewController)
+    optional func carouselDidEndDragging(carousel:CarouselViewController, willDecelerate decelerate: Bool)
+    
+    optional func carouselWillBeginDecelerating(carousel:CarouselViewController)
+    optional func carouselDidEndDecelerating(carousel:CarouselViewController)
+    
+    optional func carouselDidEndScrollingAnimation(carousel:CarouselViewController)
 }
 
 private class CarouselCellViewController:CarouselCell {
@@ -1474,24 +1515,74 @@ private class CarouselViewInViewController:CarouselView {
         }
         vcDelegate?.carousel?(vc, didScrollFrom: from, to: to)
     }
+    
+    
+    // handle did scroll
+    override func scrollViewDidScroll(scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselDidScroll?(vc)
+    }
+    
+    override func scrollViewWillBeginDecelerating(scrollView: UIScrollView) {
+        super.scrollViewWillBeginDecelerating(scrollView)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselWillBeginDecelerating?(vc)
+    }
+    
+    override func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+        super.scrollViewDidEndDecelerating(scrollView)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselDidEndDecelerating?(vc)
+    }
+    
+    override func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+        super.scrollViewDidEndScrollingAnimation(scrollView)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselDidEndScrollingAnimation?(vc)
+    }
+    
+    override func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+        super.scrollViewWillBeginDragging(scrollView)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselWillBeginDragging?(vc)
+    }
+    
+    override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        super.scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
+        guard let vc = carouselViewController else {
+            return
+        }
+        vcDelegate?.carouselDidEndDragging?(vc, willDecelerate: decelerate)
+    }
 }
 
 
 public class CarouselViewController: UIViewController {
-    /// visible page count
+    /// visible cell count
     public var cellPerPage:Int = 1 {
         didSet {
             _carouselView.cellPerPage = cellPerPage
         }
     }
-    /// buffer page count(page create but not visible)
+    /// buffer cell count(cell create but not visible)
     public var buffeCellCount:Int = 1 {        // one side
         didSet {
             _carouselView.buffeCellCount = buffeCellCount
         }
     }
     
-    /// data source of page viewcontrollers
+    /// data source of cell viewcontrollers
     public weak var dataSource:CarouselViewControllerDataSourse? {
         didSet {
             if dataSource !== oldValue {
