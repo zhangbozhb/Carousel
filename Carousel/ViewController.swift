@@ -22,9 +22,9 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        pageCountLabel.text = "Total Page: \(Int(slidePageCount.value))"
-        visiblePageCount.text = "Visiable Page: \(Int(slideVisiblePageCount.value))"
-        carousel.visiblePageCount = Int(slideVisiblePageCount.value)
+        pageCountLabel.text = "Total Cell: \(Int(slidePageCount.value))"
+        visiblePageCount.text = "Cell PerPage: \(Int(slideVisiblePageCount.value))"
+        carousel.cellPerPage = Int(slideVisiblePageCount.value)
 
 //        carousel = CarouselView.init(frame: view.bounds)
 //        view.addSubview(carousel)
@@ -100,13 +100,13 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
     }
     
     @IBAction func changePageCount(sender: UISlider) {
-        pageCountLabel.text = "Total Page: \(Int(sender.value))"
+        pageCountLabel.text = "Total Cell: \(Int(sender.value))"
         carousel.reload()
     }
     
     @IBAction func changeVisibelPageCount(sender: UISlider) {
-        visiblePageCount.text = "Visiable Page: \(Int(sender.value))"
-        carousel.visiblePageCount = Int(sender.value)
+        visiblePageCount.text = "Cell PerPage: \(Int(sender.value))"
+        carousel.cellPerPage = Int(sender.value)
         carousel.reload()
     }
     
