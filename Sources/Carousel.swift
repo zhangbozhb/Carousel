@@ -261,8 +261,8 @@ extension CarouselCell {
 
 class CarouselPageCache {
     private var maxSize = 0
-    private var pageCount = 0
-    private var cachedPages = [String: (Int, CarouselCell)]()
+    private var cellCount = 0
+    private var cachedCells = [String: (Int, CarouselCell)]()
     
     private var queueIndex:Int = 0
 
@@ -273,62 +273,62 @@ class CarouselPageCache {
      - parameter uninstall:       if true uninstall page
      - parameter ignoreSizeLimit: if true ignore size limit, you should call limitToCacheSize manually
      */
-    func push(page:CarouselCell, uninstall:Bool = true, ignoreSizeLimit:Bool = false) {
+    func push(cell:CarouselCell, uninstall:Bool = true, ignoreSizeLimit:Bool = false) {
         if uninstall {
-            page.uninstall()
+            cell.uninstall()
         }
         
-        if cachedPages.isEmpty {
-            pageCount = page.count
-        } else if pageCount != page.count {
-            cachedPages = [:]
-            pageCount = page.count
+        if cachedCells.isEmpty {
+            cellCount = cell.count
+        } else if cellCount != cell.count {
+            cachedCells = [:]
+            cellCount = cell.count
         }
         queueIndex += 1
-        cachedPages[page.cacheKey] = (queueIndex, page)
+        cachedCells[cell.cacheKey] = (queueIndex, cell)
         
         if !ignoreSizeLimit {
             limitToCacheSize()
         }
     }
     
-    func cachePage(page:Int, count:Int, removeFromCache:Bool = true) -> CarouselCell? {
+    func cacheCell(cell:Int, count:Int, removeFromCache:Bool = true) -> CarouselCell? {
         guard count > 0 else {
             return nil
         }
-        let cacheKey = "\(page)_\(count)"
-        let cached = cachedPages[cacheKey]
+        let cacheKey = "\(cell)_\(count)"
+        let cached = cachedCells[cacheKey]
         if removeFromCache {
-            cachedPages.removeValueForKey(cacheKey)
+            cachedCells.removeValueForKey(cacheKey)
         }
         return cached?.1
     }
     
     func clear() {
-        cachedPages = [:]
+        cachedCells = [:]
     }
     
     func limitToCacheSize() {
-        if 0 < maxSize && maxSize < cachedPages.count {
-            let sorted = cachedPages.sort({ $0.1.0 > $1.1.0 })
-            var remainedPages = [String: (Int, CarouselCell)]()
+        if 0 < maxSize && maxSize < cachedCells.count {
+            let sorted = cachedCells.sort({ $0.1.0 > $1.1.0 })
+            var remainedCells = [String: (Int, CarouselCell)]()
             for p in sorted[0..<maxSize] {
-                remainedPages[p.0] = p.1
+                remainedCells[p.0] = p.1
             }
             for p in sorted[maxSize..<sorted.count] {
                 p.1.1.uninstall()
             }
-            cachedPages = remainedPages
+            cachedCells = remainedCells
         } else if maxSize == 0 {
-            for p in cachedPages {
+            for p in cachedCells {
                 p.1.1.uninstall()
             }
-            cachedPages = [:]
+            cachedCells = [:]
         }
     }
     
     deinit {
-        cachedPages = [:]
+        cachedCells = [:]
     }
 }
 
@@ -707,7 +707,7 @@ extension CarouselView {
     }
     
     private func setupCellLinear(rawIndex:Int, count:Int, tail:Bool = true) -> CarouselCell {
-        let pageView = _reusableCells.cachePage(rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
+        let pageView = _reusableCells.cacheCell(rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
         if tail {
             _cells.append(pageView)
         } else {
@@ -729,12 +729,12 @@ extension CarouselView {
             let minX = max(ceil(contentOffset.x / cellWidth - CGFloat(buffeCellCount)) * cellWidth, 0)
             let maxX = minX + CGFloat(cellPerPage + buffeCellCount * 2) * cellWidth
             
-            // right：remove page
-            while let page = _cells.last where page.view.frame.minX + threshold > maxX {
+            // right：remove cell
+            while let cell = _cells.last where cell.view.frame.minX + threshold > maxX {
                 _reusableCells.push(_cells.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
-            // left：remove page
-            while let page = _cells.first where page.view.frame.maxX - threshold < minX {
+            // left：remove cell
+            while let cell = _cells.first where cell.view.frame.maxX - threshold < minX {
                 _reusableCells.push(_cells.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
@@ -742,11 +742,11 @@ extension CarouselView {
             if _cells.isEmpty {
                 setupCellLinear(Int(contentOffset.x / cellWidth), count: count)
             }
-            // right：add page
+            // right：add cell
             while let page = _cells.last where page.rawIndex < count - 1 && page.view.frame.maxX + threshold < maxX {
                 setupCellLinear(page.rawIndex + 1, count: count, tail: true)
             }
-            // left：add page
+            // left：add cell
             while let page = _cells.first where page.rawIndex > 0 && page.view.frame.minX - threshold > minX {
                 setupCellLinear(page.rawIndex - 1, count: count, tail: false)
             }
@@ -755,12 +755,12 @@ extension CarouselView {
             let minY = max(ceil(contentOffset.y / cellHeight - CGFloat(buffeCellCount)) * cellHeight, 0)
             let maxY = minY + CGFloat(cellPerPage + buffeCellCount * 2) * cellHeight
             
-            // tail：remove page
-            while let page = _cells.last where page.view.frame.minY + threshold > maxY {
+            // tail：remove cell
+            while let cell = _cells.last where cell.view.frame.minY + threshold > maxY {
                 _reusableCells.push(_cells.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
-            // top：remove page
-            while let page = _cells.first where page.view.frame.maxY - threshold < minY {
+            // top：remove cell
+            while let cell = _cells.first where cell.view.frame.maxY - threshold < minY {
                 _reusableCells.push(_cells.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
@@ -768,11 +768,11 @@ extension CarouselView {
             if _cells.isEmpty {
                 setupCellLinear(Int(contentOffset.y / cellHeight), count: count)
             }
-            // tail：add page
+            // tail：add cell
             while let page = _cells.last where page.rawIndex < count - 1 && page.view.frame.maxY + threshold < maxY {
                 setupCellLinear(page.rawIndex + 1, count: count, tail: true)
             }
-            // top：add page
+            // top：add cell
             while let page = _cells.first where page.rawIndex > 0 && page.view.frame.minY - threshold > minY {
                 setupCellLinear(page.rawIndex - 1, count: count, tail: false)
             }
@@ -891,7 +891,7 @@ extension CarouselView {
     
     private func setupCellLoop(rawIndex:Int, count:Int, tail:Bool) -> CarouselCell {
         let index = formatedInex(rawIndex, ofCount: count)
-        let pageView = _reusableCells.cachePage(index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
+        let pageView = _reusableCells.cacheCell(index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
         if tail {
             _cells.append(pageView)
         } else {
@@ -910,16 +910,16 @@ extension CarouselView {
         
         if direction == .Horizontal {
             let cellWidth = self.cellWidth
-            let bufferPageWidth = min(CGFloat(cellPerPage + buffeCellCount * 2), CGFloat(count)) * cellWidth
-            let maxX = floor((contentOffset.x + bufferPageWidth) / cellWidth) * cellWidth
-            let minX = maxX - bufferPageWidth
+            let bufferCellWidth = min(CGFloat(cellPerPage + buffeCellCount * 2), CGFloat(count)) * cellWidth
+            let maxX = floor((contentOffset.x + bufferCellWidth) / cellWidth) * cellWidth
+            let minX = maxX - bufferCellWidth
             
-            // right：remove page
-            while let page = _cells.last where page.view.frame.minX + threshold > maxX {
+            // right：remove cell
+            while let cell = _cells.last where cell.view.frame.minX + threshold > maxX {
                 _reusableCells.push(_cells.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
-            // left：remove page
-            while let page = _cells.first where page.view.frame.maxX - threshold < minX {
+            // left：remove cell
+            while let cell = _cells.first where cell.view.frame.maxX - threshold < minX {
                 _reusableCells.push(_cells.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
@@ -927,26 +927,26 @@ extension CarouselView {
             if _cells.isEmpty {
                 setupCellLoop(Int(contentOffset.x / cellWidth) - _offsetPage, count: count, tail: true)
             }
-            // right：add page
-            while let page = _cells.last where page.view.frame.maxX + threshold < maxX {
-                setupCellLoop(page.rawIndex + 1, count: count, tail: true)
+            // right：add cell
+            while let cell = _cells.last where cell.view.frame.maxX + threshold < maxX {
+                setupCellLoop(cell.rawIndex + 1, count: count, tail: true)
             }
-            // left：add page
-            while let page = _cells.first where page.view.frame.minX - threshold > minX {
-                setupCellLoop(page.rawIndex - 1, count: count, tail: false)
+            // left：add cell
+            while let cell = _cells.first where cell.view.frame.minX - threshold > minX {
+                setupCellLoop(cell.rawIndex - 1, count: count, tail: false)
             }
         } else {
             let cellHeight = self.cellHeight
-            let bufferPageHeight = min(CGFloat(cellPerPage + buffeCellCount * 2), CGFloat(count)) * cellHeight
-            let maxY = floor((contentOffset.y + bufferPageHeight) / cellHeight) * cellHeight
-            let minY = maxY - bufferPageHeight
+            let bufferCellHeight = min(CGFloat(cellPerPage + buffeCellCount * 2), CGFloat(count)) * cellHeight
+            let maxY = floor((contentOffset.y + bufferCellHeight) / cellHeight) * cellHeight
+            let minY = maxY - bufferCellHeight
             
-            // tail：remove page
-            while let page = _cells.last where page.view.frame.minY + threshold > maxY {
+            // tail：remove cell
+            while let cell = _cells.last where cell.view.frame.minY + threshold > maxY {
                 _reusableCells.push(_cells.removeLast(), uninstall: false, ignoreSizeLimit: true)
             }
-            // top：remove page
-            while let page = _cells.first where page.view.frame.maxY - threshold < minY {
+            // top：remove cell
+            while let cell = _cells.first where cell.view.frame.maxY - threshold < minY {
                 _reusableCells.push(_cells.removeFirst(), uninstall: false, ignoreSizeLimit: true)
             }
             
@@ -954,13 +954,13 @@ extension CarouselView {
             if _cells.isEmpty {
                 setupCellLoop(Int(contentOffset.y / cellHeight) - _offsetPage, count: count, tail: true)
             }
-            // tail：add page
-            while let page = _cells.last where page.view.frame.maxY + threshold < maxY {
-                setupCellLoop(page.rawIndex + 1, count: count, tail: true)
+            // tail：add cell
+            while let cell = _cells.last where cell.view.frame.maxY + threshold < maxY {
+                setupCellLoop(cell.rawIndex + 1, count: count, tail: true)
             }
-            // top：add page
-            while let page = _cells.first where page.view.frame.minY - threshold > minY {
-                setupCellLoop(page.rawIndex - 1, count: count, tail: false)
+            // top：add cell
+            while let cell = _cells.first where cell.view.frame.minY - threshold > minY {
+                setupCellLoop(cell.rawIndex - 1, count: count, tail: false)
             }
         }
     }
@@ -1200,7 +1200,7 @@ public extension CarouselView {
         case .Linear:
             if page >= 0 && page < count {
                 let p = fetchCell(page, count: count, rawIndex: page)
-                if let _ = _reusableCells.cachePage(page, count: count, removeFromCache: false) {
+                if let _ = _reusableCells.cacheCell(page, count: count, removeFromCache: false) {
                     _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
                 } else {
                     for vp in visibleCells {
@@ -1214,7 +1214,7 @@ public extension CarouselView {
         case .Loop:
             let index = formatedInex(page, ofCount: count)
             let p = fetchCell(index, count: count, rawIndex: page)
-            if let _ = _reusableCells.cachePage(page, count: count, removeFromCache: false) {
+            if let _ = _reusableCells.cacheCell(page, count: count, removeFromCache: false) {
                 _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
             } else {
                 for vp in visibleCells {
