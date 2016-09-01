@@ -18,7 +18,6 @@ class CarouselViewControllerDemo: CarouselViewController, CarouselViewController
         self.type = .Loop
         self.reload()
         
-        self.scrollToPage(0)
         self.autoScroll(2, increase: true)
     }
 

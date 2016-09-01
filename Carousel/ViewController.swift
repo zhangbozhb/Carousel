@@ -32,8 +32,7 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         carousel.dataSource = self
         carousel.carouselDelegate = self
         carousel.reload()
-        
-        carousel.scrollToPage(0)
+
         carousel.autoScroll(2, increase: true)
     }
 
@@ -84,9 +83,9 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
     var preDouble:Double = -1
     @IBAction func changePage(sender: UIStepper) {
         if preDouble < sender.value {
-            carousel.nextPage(true)
+            carousel.nextCell(true)
         } else {
-            carousel.prePage(true)
+            carousel.nextCell(true)
         }
         preDouble = sender.value
     }

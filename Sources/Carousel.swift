@@ -267,10 +267,10 @@ class CarouselPageCache {
     private var queueIndex:Int = 0
 
     /**
-     cache page
+     cache cell
      
-     - parameter page:            page to cache
-     - parameter uninstall:       if true uninstall page
+     - parameter cell:            cell to cache
+     - parameter uninstall:       if true uninstall cell
      - parameter ignoreSizeLimit: if true ignore size limit, you should call limitToCacheSize manually
      */
     func push(cell:CarouselCell, uninstall:Bool = true, ignoreSizeLimit:Bool = false) {
@@ -366,10 +366,9 @@ public class CarouselView: UIScrollView {
                 cellPerPage = 1
                 return
             }
-            updateCellSize()
             updatePagingEnabled()
             if cellPerPage != oldValue {
-                relayoutPage()
+                setNeedsLayout()
             }
         }
     }
@@ -394,7 +393,7 @@ public class CarouselView: UIScrollView {
     
     private var _cellSize:CGSize = CGSize(width: 1, height: 1)
     
-    private var _preSize:CGSize = CGSize()
+    private var _preSize:CGSize = CGSizeZero
     private var _preFirstCellIndex:Int = 0
     private var _preContentOffset = CGPointZero
     private var _delegateWrapper = CarouselScrollViewDelegateWrapper()
@@ -414,7 +413,7 @@ public class CarouselView: UIScrollView {
     public var direction = CarouselDirection.Horizontal {
         didSet {
             if direction != oldValue {
-                updateCellSize()
+                setNeedsLayout()
             }
         }
     }
@@ -540,16 +539,24 @@ public class CarouselView: UIScrollView {
             break
         }
     }
+    
+    private func cellSizeEqualToSize(size1: CGSize, _ size2: CGSize) -> Bool {
+        return abs(size1.width - size2.width) < 0.001 && abs(size1.height - size2.height) < 0.001
+    }
     /**
      update cell size
+     
+     - returns: true size change, false not
      */
-    private final func updateCellSize() {
+    private final func updateCellSize() -> Bool {
         let width = max(direction == .Horizontal ? frame.width / CGFloat(cellPerPage) : frame.width, threshold)
         let height = max(direction == .Vertical ? frame.height / CGFloat(cellPerPage) : frame.height, threshold)
-        // update _cellSize if size change (float compare issue, and ignore if change can be ignored)
-        if abs(_cellSize.width - width) > 0.001 || abs(_cellSize.height - height) > 0.001 {
-            _cellSize = CGSize(width: width, height: height)
+        let cellSize = CGSize(width: width, height: height)
+        if !cellSizeEqualToSize(_cellSize, cellSize) {
+            _cellSize = cellSize
+            return true
         }
+        return false
     }
     
     private func resetCells() {
@@ -570,7 +577,33 @@ public class CarouselView: UIScrollView {
         return dataSource?.numberOfView(self)
     }
     
+    /**
+     update current cell frame in _cells
+     */
+    final public func updateCurrentCellsLayout() {
+        guard let pre = _cells.first where !cellSizeEqualToSize(_cellSize, pre.view.frame.size) else {
+            return
+        }
+        switch type {
+        case .Linear:
+            for cell in _cells {
+                cell.view.frame = frameLinear(cell.rawIndex)
+            }
+        case .Loop:
+            for cell in _cells {
+                cell.view.frame = frameLoop(cell.rawIndex)
+            }
+        }
+    }
+    
+    /**
+     update visible cell (add or remove cell if needed)
+     */
     private func updateVisibleCell() {
+        // update current cells layout
+        updateCurrentCellsLayout()
+        
+        // update visible cell
         switch type {
         case .Linear:
             updateVisibleCellLinear()
@@ -586,18 +619,6 @@ public class CarouselView: UIScrollView {
         resetCells()
         updateVisibleCell()
         
-        updateContentSize()
-    }
-    /**
-     relayout but do not promise to load latest data source
-     */
-    private func relayoutPage() {
-        let pre = _cells
-        _cells = []
-        for cell in pre {
-            _reusableCells.push(cell, uninstall: false, ignoreSizeLimit: true)
-        }
-        updateVisibleCell()
         updateContentSize()
     }
     
@@ -631,30 +652,21 @@ public class CarouselView: UIScrollView {
     override public func layoutSubviews() {
         super.layoutSubviews()
         // update cell size
-        updateCellSize()
-        
-        
-        if !CGSizeEqualToSize(_preSize, frame.size) {
-            relayoutPage()
-            scrollToPage(Int(preSizePage))
+        var shouldAdjustCell = updateCellSize()
+        // update content size
+        updateContentSize()
+        // update cell should display
+        updateVisibleCell()
+        // update pre size
+        if !cellSizeEqualToSize(_preSize, frame.size) {
             _preSize = frame.size
-        } else {
-            updateContentSize()
-            updateVisibleCell()
+            shouldAdjustCell = true
+        }
+        
+        if shouldAdjustCell {
+            scrollToIndex(0)
         }
     }
-    
-    private var preSizePage:CGFloat {
-        var page:CGFloat = 0
-        switch direction {
-        case .Horizontal:
-            page = _preSize.width > 0 ? contentOffset.x * CGFloat(cellPerPage) / _preSize.width : 0
-        case .Vertical:
-            page = _preSize.height > 0 ? contentOffset.y * CGFloat(cellPerPage) / _preSize.height : 0
-        }
-        return page - CGFloat(_offsetPage)
-    }
-    
     
     private func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
         carouselDelegate?.carousel?(self, scrollFrom: from, to: to, progress: progress)
@@ -665,7 +677,7 @@ public class CarouselView: UIScrollView {
     }
 }
 
-// 线性page
+// 线性 cell
 extension CarouselView {
     private func updateScrollProgressLinear() {
         if let first = firstVisibleCell where first.rawIndex < first.count {
@@ -676,19 +688,19 @@ extension CarouselView {
             } else {
                 switch direction {
                 case .Horizontal:
-                    let increasePage = _preContentOffset.x < contentOffset.x
-                    let next = increasePage ? first.rawIndex + 1 : first.rawIndex - 1
+                    let cellIncrease = _preContentOffset.x < contentOffset.x
+                    let next = cellIncrease ? first.rawIndex + 1 : first.rawIndex - 1
                     if next > 0 && next < first.count {
                         var progress = contentOffset.x / cellWidth
-                        progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
+                        progress = cellIncrease ? progress - floor(progress) : progress - ceil(progress)
                         carouselScrollFrom(_preFirstCellIndex, to: next, progress: progress)
                     }
                 case .Vertical:
-                    let increasePage = _preContentOffset.y < contentOffset.y
-                    let next = increasePage ? first.rawIndex + 1 : first.rawIndex - 1
+                    let cellIncrease = _preContentOffset.y < contentOffset.y
+                    let next = cellIncrease ? first.rawIndex + 1 : first.rawIndex - 1
                     if next > 0 && next < first.count {
                         var progress = contentOffset.y / cellHeight
-                        progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
+                        progress = cellIncrease ? progress - floor(progress) : progress - ceil(progress)
                         carouselScrollFrom(_preFirstCellIndex, to: next, progress: progress)
                     }
                 }
@@ -714,8 +726,8 @@ extension CarouselView {
     private func resetCellsLinear() {
         let pre = _cells
         _cells = []
-        for page in pre {
-            page.uninstall()
+        for cell in pre {
+            cell.uninstall()
         }
         _reusableCells.clear()
     }
@@ -730,15 +742,15 @@ extension CarouselView {
     }
     
     private func setupCellLinear(rawIndex:Int, count:Int, tail:Bool = true) -> CarouselCell {
-        let pageView = _reusableCells.cacheCell(rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
+        let cell = _reusableCells.cacheCell(rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
         if tail {
-            _cells.append(pageView)
+            _cells.append(cell)
         } else {
-            _cells.insert(pageView, atIndex: 0)
+            _cells.insert(cell, atIndex: 0)
         }
         
-        pageView.install(self, frame: frameLinear(rawIndex))
-        return pageView
+        cell.install(self, frame: frameLinear(rawIndex))
+        return cell
     }
     
     private func updateVisibleCellLinear() {
@@ -765,12 +777,12 @@ extension CarouselView {
                 setupCellLinear(Int(contentOffset.x / cellWidth), count: count)
             }
             // right：add cell
-            while let page = _cells.last where page.rawIndex < count - 1 && page.view.frame.maxX + threshold < maxX {
-                setupCellLinear(page.rawIndex + 1, count: count, tail: true)
+            while let cell = _cells.last where cell.rawIndex < count - 1 && cell.view.frame.maxX + threshold < maxX {
+                setupCellLinear(cell.rawIndex + 1, count: count, tail: true)
             }
             // left：add cell
-            while let page = _cells.first where page.rawIndex > 0 && page.view.frame.minX - threshold > minX {
-                setupCellLinear(page.rawIndex - 1, count: count, tail: false)
+            while let cell = _cells.first where cell.rawIndex > 0 && cell.view.frame.minX - threshold > minX {
+                setupCellLinear(cell.rawIndex - 1, count: count, tail: false)
             }
         } else {
             let minY = max(ceil(contentOffset.y / cellHeight - CGFloat(buffeCellCount)) * cellHeight, 0)
@@ -790,21 +802,21 @@ extension CarouselView {
                 setupCellLinear(Int(contentOffset.y / cellHeight), count: count)
             }
             // tail：add cell
-            while let page = _cells.last where page.rawIndex < count - 1 && page.view.frame.maxY + threshold < maxY {
-                setupCellLinear(page.rawIndex + 1, count: count, tail: true)
+            while let cell = _cells.last where cell.rawIndex < count - 1 && cell.view.frame.maxY + threshold < maxY {
+                setupCellLinear(cell.rawIndex + 1, count: count, tail: true)
             }
             // top：add cell
-            while let page = _cells.first where page.rawIndex > 0 && page.view.frame.minY - threshold > minY {
-                setupCellLinear(page.rawIndex - 1, count: count, tail: false)
+            while let cell = _cells.first where cell.rawIndex > 0 && cell.view.frame.minY - threshold > minY {
+                setupCellLinear(cell.rawIndex - 1, count: count, tail: false)
             }
         }
     }
 }
 
-// loop page
+// loop cell
 extension CarouselView {
-    // page zero offset
-    private var _offsetPage:Int {
+    // cell zero offset
+    private var _offsetCellIndex:Int {
         return cellPerPage * _loopPage
     }
     
@@ -817,16 +829,16 @@ extension CarouselView {
             } else {
                 switch direction {
                 case .Horizontal:
-                    let increasePage = _preContentOffset.x < contentOffset.x
-                    let next = formatedInex(increasePage ? first.rawIndex + 1 : first.rawIndex - 1, ofCount: first.count)
+                    let cellIncrease = _preContentOffset.x < contentOffset.x
+                    let next = formatedInex(cellIncrease ? first.rawIndex + 1 : first.rawIndex - 1, ofCount: first.count)
                     var progress = contentOffset.x / cellWidth
-                    progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
+                    progress = cellIncrease ? progress - floor(progress) : progress - ceil(progress)
                     carouselScrollFrom(_preFirstCellIndex, to: next, progress: progress)
                 case .Vertical:
-                    let increasePage = _preContentOffset.y < contentOffset.y
-                    let next = formatedInex(increasePage ? first.rawIndex + 1 : first.rawIndex - 1, ofCount: first.count)
+                    let cellIncrease = _preContentOffset.y < contentOffset.y
+                    let next = formatedInex(cellIncrease ? first.rawIndex + 1 : first.rawIndex - 1, ofCount: first.count)
                     var progress = contentOffset.y / cellHeight
-                    progress = increasePage ? progress - floor(progress) : progress - ceil(progress)
+                    progress = cellIncrease ? progress - floor(progress) : progress - ceil(progress)
                     carouselScrollFrom(_preFirstCellIndex, to: next, progress: progress)
                 }
             }
@@ -842,24 +854,24 @@ extension CarouselView {
         
         switch direction {
         case .Horizontal:
-            let bufferWidth = cellWidth * CGFloat(_offsetPage)
-            let totalPageWidth = cellWidth * CGFloat(count)
+            let bufferWidth = cellWidth * CGFloat(_offsetCellIndex)
+            let totalCellWidth = cellWidth * CGFloat(count)
             let minX = bufferWidth
-            let maxX = totalPageWidth + bufferWidth
+            let maxX = totalCellWidth + bufferWidth
             if contentOffset.x > maxX {
                 _delegateWrapper.ignoreScrollEvent = true
-                contentOffset.x -= totalPageWidth
+                contentOffset.x -= totalCellWidth
                 updateVisibleCellLoop()
             } else if contentOffset.x < minX {
                 _delegateWrapper.ignoreScrollEvent = true
-                contentOffset.x += totalPageWidth
+                contentOffset.x += totalCellWidth
                 updateVisibleCellLoop()
             }
         case .Vertical:
-            let bufferHeight = cellHeight * CGFloat(_offsetPage)
-            let totalPageHeight = cellHeight * CGFloat(count)
+            let bufferHeight = cellHeight * CGFloat(_offsetCellIndex)
+            let totalCellHeight = cellHeight * CGFloat(count)
             let minY = bufferHeight
-            let maxY = totalPageHeight + bufferHeight
+            let maxY = totalCellHeight + bufferHeight
             if contentOffset.y > maxY {
                 _delegateWrapper.ignoreScrollEvent = true
                 contentOffset.y -= bufferHeight
@@ -875,7 +887,7 @@ extension CarouselView {
     private func updateContentSizeLoop() {
         var targetSize = frame.size
         if let count = numberOfView() where count > cellPerPage {
-            let targetCount = count + 2 * _offsetPage
+            let targetCount = count + 2 * _offsetCellIndex
             if direction == .Horizontal {
                 targetSize = CGSizeMake(CGFloat(targetCount) * cellWidth, frame.height)
             } else {
@@ -900,23 +912,23 @@ extension CarouselView {
     private func frameLoop(rawIndex:Int) -> CGRect {
         switch direction {
         case .Horizontal:
-            return CGRectMake(CGFloat(rawIndex + _offsetPage) * cellWidth, 0, cellWidth, cellHeight)
+            return CGRectMake(CGFloat(rawIndex + _offsetCellIndex) * cellWidth, 0, cellWidth, cellHeight)
         case .Vertical:
-            return CGRectMake(0, CGFloat(rawIndex + _offsetPage) * cellHeight, cellWidth, cellHeight)
+            return CGRectMake(0, CGFloat(rawIndex + _offsetCellIndex) * cellHeight, cellWidth, cellHeight)
         }
     }
     
     private func setupCellLoop(rawIndex:Int, count:Int, tail:Bool) -> CarouselCell {
         let index = formatedInex(rawIndex, ofCount: count)
-        let pageView = _reusableCells.cacheCell(index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
+        let cell = _reusableCells.cacheCell(index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
         if tail {
-            _cells.append(pageView)
+            _cells.append(cell)
         } else {
-            _cells.insert(pageView, atIndex: 0)
+            _cells.insert(cell, atIndex: 0)
         }
         
-        pageView.install(self, frame: frameLoop(rawIndex))
-        return pageView
+        cell.install(self, frame: frameLoop(rawIndex))
+        return cell
     }
     
     private func updateVisibleCellLoop() {
@@ -941,7 +953,7 @@ extension CarouselView {
             
             // handle empty
             if _cells.isEmpty {
-                setupCellLoop(Int(contentOffset.x / cellWidth) - _offsetPage, count: count, tail: true)
+                setupCellLoop(Int(contentOffset.x / cellWidth) - _offsetCellIndex, count: count, tail: true)
             }
             // right：add cell
             while let cell = _cells.last where cell.view.frame.maxX + threshold < maxX {
@@ -967,7 +979,7 @@ extension CarouselView {
             
             // handle empty
             if _cells.isEmpty {
-                setupCellLoop(Int(contentOffset.y / cellHeight) - _offsetPage, count: count, tail: true)
+                setupCellLoop(Int(contentOffset.y / cellHeight) - _offsetCellIndex, count: count, tail: true)
             }
             // tail：add cell
             while let cell = _cells.last where cell.view.frame.maxY + threshold < maxY {
@@ -1048,17 +1060,17 @@ extension CarouselView {
         case .Horizontal:
             let minX = contentOffset.x
             let maxX = contentOffset.x + frame.width
-            for p in _cells {
-                if p.view.frame.minX > minX - threshold && p.view.frame.maxX < maxX + threshold {
-                    result.append(p)
+            for c in _cells {
+                if c.view.frame.minX > minX - threshold && c.view.frame.maxX < maxX + threshold {
+                    result.append(c)
                 }
             }
         case .Vertical:
             let minY = contentOffset.y
             let maxY = contentOffset.y + frame.height
-            for p in _cells {
-                if p.view.frame.minY > minY - threshold && p.view.frame.maxY < maxY + threshold {
-                    result.append(p)
+            for c in _cells {
+                if c.view.frame.minY > minY - threshold && c.view.frame.maxY < maxY + threshold {
+                    result.append(c)
                 }
             }
         }
@@ -1066,45 +1078,45 @@ extension CarouselView {
     }
     
     public var firstVisibleCell:CarouselCell? {
-        var page = _cells.first
+        var cell = _cells.first
         switch direction {
         case .Horizontal:
-            for p in _cells {
-                if p.view.frame.maxX - threshold > contentOffset.x {
-                    page = p
+            for c in _cells {
+                if c.view.frame.maxX - threshold > contentOffset.x {
+                    cell = c
                     break
                 }
             }
         case .Vertical:
-            for p in _cells {
-                if p.view.frame.maxY - threshold > contentOffset.y {
-                    page = p
+            for c in _cells {
+                if c.view.frame.maxY - threshold > contentOffset.y {
+                    cell = c
                     break
                 }
             }
         }
-        return page
+        return cell
     }
     
-    public var lastVisiblePage:CarouselCell? {
-        var page = _cells.last
+    public var lastVisibleIndex:CarouselCell? {
+        var cell = _cells.last
         switch direction {
         case .Horizontal:
-            for p in _cells {
-                if p.view.frame.maxX + threshold > contentOffset.x + frame.width {
-                    page = p
+            for c in _cells {
+                if c.view.frame.maxX + threshold > contentOffset.x + frame.width {
+                    cell = c
                     break
                 }
             }
         case .Vertical:
-            for p in _cells {
-                if p.view.frame.maxY + threshold > contentOffset.y + frame.height {
-                    page = p
+            for c in _cells {
+                if c.view.frame.maxY + threshold > contentOffset.y + frame.height {
+                    cell = c
                     break
                 }
             }
         }
-        return page
+        return cell
     }
     
     public var firstVisibleCellIndex:CGFloat {
@@ -1119,10 +1131,10 @@ extension CarouselView {
         }
     }
     
-    public func scrollToPage(page:Int, animated:Bool = false) {
+    public func scrollToIndex(index:Int, animated:Bool = false) {
         switch type {
         case .Linear:
-            var offset = frameLinear(page).origin
+            var offset = frameLinear(index).origin
             switch direction {
             case .Horizontal:
                 let maxX = contentSize.width - frame.width
@@ -1134,35 +1146,35 @@ extension CarouselView {
             setContentOffset(offset, animated: animated)
         case .Loop:
             if Int(contentSize.width) > Int(frame.width) || Int(contentSize.height) > Int(frame.height) {
-                setContentOffset(frameLoop(page).origin, animated: animated)
+                setContentOffset(frameLoop(index).origin, animated: animated)
             }
         }
         updateVisibleCell()
     }
     
-    public func nextPage(animated:Bool = false) {
+    public func nextCell(animated:Bool = false) {
         guard let first = firstVisibleCell else {
             return
         }
-        scrollToPage(first.rawIndex + 1, animated: animated)
+        scrollToIndex(first.rawIndex + 1, animated: animated)
     }
     
-    public func prePage(animated:Bool = false) {
+    public func preNext(animated:Bool = false) {
         guard let first = firstVisibleCell else {
             return
         }
-        scrollToPage(first.rawIndex - 1, animated: animated)
+        scrollToIndex(first.rawIndex - 1, animated: animated)
     }
 }
 
 // support auto scoll
 public extension CarouselView {
     func autoScrollToNext() {
-        nextPage(true)
+        nextCell(true)
     }
     
     func autoScrollToPre() {
-        prePage(true)
+        preNext(true)
     }
     
     /**
@@ -1208,12 +1220,12 @@ public extension CarouselView {
 
 // add reload relative method
 public extension CarouselView {
-    @inline(__always) private func reload(page:Int, withCount count: Int) {
+    @inline(__always) private func reload(index:Int, withCount count: Int) {
         switch type {
         case .Linear:
-            if page >= 0 && page < count {
-                let p = fetchCell(page, count: count, rawIndex: page)
-                if let _ = _reusableCells.cacheCell(page, count: count, removeFromCache: false) {
+            if index >= 0 && index < count {
+                let p = fetchCell(index, count: count, rawIndex: index)
+                if let _ = _reusableCells.cacheCell(index, count: count, removeFromCache: false) {
                     _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
                 } else {
                     for vp in visibleCells {
@@ -1225,9 +1237,9 @@ public extension CarouselView {
                 }
             }
         case .Loop:
-            let index = formatedInex(page, ofCount: count)
-            let p = fetchCell(index, count: count, rawIndex: page)
-            if let _ = _reusableCells.cacheCell(page, count: count, removeFromCache: false) {
+            let findex = formatedInex(index, ofCount: count)
+            let p = fetchCell(findex, count: count, rawIndex: index)
+            if let _ = _reusableCells.cacheCell(index, count: count, removeFromCache: false) {
                 _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
             } else {
                 for vp in visibleCells {
@@ -1433,7 +1445,7 @@ public protocol CarouselViewControllerDataSourse:class {
      
      - parameter carousel: instance of CarouselViewController
      - parameter from:     from page(first visiable page)
-     - parameter to:       to page
+     - parameter to:       to cell
      
      - returns: Void
      */
@@ -1613,7 +1625,7 @@ public class CarouselViewController: UIViewController {
         }
     }
     
-    /// reuse page size number, if negative will cache all pages( high memory usage)
+    /// reuse cell size number, if negative will cache all cells( high memory usage)
     public var cacheSize:Int = 0 {
         didSet {
             _carouselView.cacheSize = cacheSize
@@ -1625,7 +1637,7 @@ public class CarouselViewController: UIViewController {
             _carouselView.direction = direction
         }
     }
-    /// page layout in Loop or Linear
+    /// cell layout in Loop or Linear
     public var type = CarouselType.Linear {
         didSet {
             _carouselView.type = type
@@ -1668,24 +1680,24 @@ public extension CarouselViewController {
         return _carouselView.firstVisibleCell
     }
     
-    public var lastVisiblePage:CarouselCell? {
-        return _carouselView.lastVisiblePage
+    public var lastVisibleIndex:CarouselCell? {
+        return _carouselView.lastVisibleIndex
     }
     
     public var firstVisibleCellIndex:CGFloat {
         return _carouselView.firstVisibleCellIndex
     }
     
-    public func scrollToPage(page:Int, animated:Bool = false) {
-        return _carouselView.scrollToPage(page, animated: animated)
+    public func scrollToIndex(index:Int, animated:Bool = false) {
+        return _carouselView.scrollToIndex(index, animated: animated)
     }
     
-    public func nextPage(animated:Bool = false) {
-        _carouselView.nextPage(animated)
+    public func nextCell(animated:Bool = false) {
+        _carouselView.nextCell(animated)
     }
     
-    public func prePage(animated:Bool = false) {
-        _carouselView.prePage(animated)
+    public func preNext(animated:Bool = false) {
+        _carouselView.preNext(animated)
     }
 }
 
@@ -1710,7 +1722,7 @@ public extension CarouselViewController {
      auto scroll
      default auto scroll is disable
      - parameter timeInterval: scroll time interval
-     - parameter increase:     page increase or decrease
+     - parameter increase:     cell increase or decrease
      */
     public func autoScroll(timeInterval:NSTimeInterval, increase:Bool) {
         _carouselView.autoScroll(timeInterval, increase: increase)
