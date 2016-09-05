@@ -688,7 +688,7 @@ extension CarouselView {
         
         switch direction {
         case .Horizontal:
-            if abs(first.view.frame.minX - contentOffset.x) < threshold {
+            if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLinear(_curFirstCellIndex).maxX || contentOffset.x < frameLinear(_curFirstCellIndex - 1).minX {
                 if first.rawIndex != _curFirstCellIndex {
                     carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
                     _curFirstCellIndex = first.rawIndex
@@ -696,7 +696,7 @@ extension CarouselView {
                 return
             }
         case .Vertical:
-            if abs(first.view.frame.minY - contentOffset.y) < threshold {
+            if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLinear(_curFirstCellIndex).maxY || contentOffset.y < frameLinear(_curFirstCellIndex - 1).minY {
                 if first.rawIndex != _curFirstCellIndex {
                     carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
                     _curFirstCellIndex = first.rawIndex
@@ -824,34 +824,34 @@ extension CarouselView {
         
         switch direction {
         case .Horizontal:
-            if abs(first.view.frame.minX - contentOffset.x) < threshold {
-                if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
+            if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLoop(_curFirstCellIndex).maxX || contentOffset.x < frameLoop(_curFirstCellIndex - 1).minX {
+                if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
+                    let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
+                    carouselDidScrollFrom(_curFirstCellIndex - offset, to: first.rawIndex - offset)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
             }
         case .Vertical:
-            if abs(first.view.frame.minY - contentOffset.y) < threshold {
-                if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
+            if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLoop(_curFirstCellIndex).maxY || contentOffset.y < frameLoop(_curFirstCellIndex - 1).minY {
+                if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
+                    let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
+                    carouselDidScrollFrom(_curFirstCellIndex - offset, to: first.rawIndex - offset)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
             }
         }
         
+        var progress:CGFloat = 0
         switch direction {
         case .Horizontal:
-            let progress = contentOffset.x / cellWidth - CGFloat(_curFirstCellIndex + _offsetCellIndex)
-            if abs(progress) > 1 {
-                let ff = 3
-            }
-            carouselScrollFrom(_curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1 , progress: progress)
+            progress = contentOffset.x / cellWidth - CGFloat(_curFirstCellIndex + _offsetCellIndex)
         case .Vertical:
-            let progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex + _offsetCellIndex)
-            carouselScrollFrom(_curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, progress: progress)
+            progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex + _offsetCellIndex)
         }
+        let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
+        carouselScrollFrom(_curFirstCellIndex - offset, to: progress > 0 ? _curFirstCellIndex + 1 - offset: _curFirstCellIndex - 1 - offset, progress: progress)
     }
     
     private func updateContentOffsetLoop() {
@@ -1015,6 +1015,9 @@ extension CarouselView: UIScrollViewDelegate {
     }
     // handle did scroll
     public func scrollViewDidScroll(scrollView: UIScrollView) {
+        // update visible cells
+        updateVisibleCell()
+        
         // update scroll progess
         updateScrollProgress()
         // update content offset(to restrict position) if needed
