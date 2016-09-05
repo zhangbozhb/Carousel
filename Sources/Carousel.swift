@@ -28,99 +28,31 @@
 
 import UIKit
 
-
-public protocol CarouselViewDataSourse:class {
-    /**
-     number of view for carouse
-     
-     - parameter carousel: CarouselView instance
-     
-     - returns: number of view
-     */
-    func numberOfView(carousel:CarouselView) -> Int
-    /**
-     iew at index for carouse
-     
-     - parameter carousel: instance of CarouselView
-     - parameter index:    cell index for view
-     
-     - returns: view at cell index
-     */
-    func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView?
+protocol CarouselDataSourse:class {
+    func numberOfCell() -> Int
+    func cellForIndex(index:Int) -> UIView?
 }
 
-@objc public protocol CarouselViewDelegate:class {
-    /**
-     cell will add to carousel
-     
-     - parameter carousel: instance of CarouselView
-     - parameter cell:     cell index
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, willInstallCell cell:Int)
-    /**
-     cell will remove from carousel
-     
-     - parameter carousel: instance of CarouselView
-     - parameter cell:     cell index
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, willUninstallCell cell:Int)
-    /**
-     cell did add to carousel
-     
-     - parameter carousel: instance of CarouselView
-     - parameter cell:     cell index
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, didInstallCell cell:Int)
-    /**
-     cell did remove from carousel
-     
-     - parameter carousel: instance of CarouselView
-     - parameter cell:     cell index
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, didUninstallCell cell:Int)
+protocol CarouselDelegate:class {
+    // install uninstall
+    func carouselWillInstallCell(index:Int)
+    func carouselWillUninstallCell(index:Int)
+    func carouselDidInstallCell(index:Int)
+    func carouselDidUninstallCell(index:Int)
+    
+    // progresss
+    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat)
+    func carouselDidScrollFrom(from:Int, to:Int)
     
     
-
-    // MARK: scroll relate delegate
-    /**
-     cell scroll progress
-     
-     - parameter carousel: instance of CarouselView
-     - parameter from:     from cell(first visiable cell)
-     - parameter to:       to cell
-     - parameter progress: progess for scroll: progress > 0, cell grow direction, < 0 cell decrease diretion
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, scrollFrom from:Int, to:Int, progress:CGFloat)
-    /**
-     cell did scroll from cell to cell
-     
-     - parameter carousel: instance of CarouselView
-     - parameter from:     from cell(first visiable cell)
-     - parameter to:       to cell
-     
-     - returns: Void
-     */
-    optional func carousel(carousel:CarouselView, didScrollFrom from:Int, to:Int)
+    func carouselDidScroll()
+    func carouselWillBeginDragging()
+    func carouselDidEndDraggingWillDecelerate(decelerate: Bool)
     
-
-    optional func carouselDidScroll(carousel:CarouselView)
-    optional func carouselWillBeginDragging(carousel:CarouselView)
-    optional func carouselDidEndDragging(carousel:CarouselView, willDecelerate decelerate: Bool)
+    func carouselWillBeginDecelerating()
+    func carouselDidEndDecelerating()
     
-    optional func carouselWillBeginDecelerating(carousel:CarouselView)
-    optional func carouselDidEndDecelerating(carousel:CarouselView)
-    
-    optional func carouselDidEndScrollingAnimation(carousel:CarouselView)
+    func carouselDidEndScrollingAnimation()
 }
 
 private func formatedInex(index:Int, ofCount count:Int) -> Int {
@@ -143,6 +75,7 @@ public class CarouselCell {
     private var rawIndex:Int = 0
     private(set) var count:Int = 0
     private(set) var view = UIView()
+    private weak var delegate:CarouselDelegate?
     
     private init(rawIndex:Int) {
         self.rawIndex = rawIndex
@@ -152,6 +85,13 @@ public class CarouselCell {
         self.rawIndex = rawIndex
         self.count = count
         self.view = view
+    }
+    
+    init(rawIndex:Int, count:Int, view:UIView, delegate:CarouselDelegate?) {
+        self.rawIndex = rawIndex
+        self.count = count
+        self.view = view
+        self.delegate = delegate
     }
     
     deinit {
@@ -206,50 +146,19 @@ public class CarouselCell {
     }
     
     func willUninstall() {
+        delegate?.carouselWillUninstallCell(index)
     }
     
     func didUninstall() {
+        delegate?.carouselDidUninstallCell(index)
     }
     
     func willInstall() {
+        delegate?.carouselWillInstallCell(index)
     }
     
     func didInstall() {
-    }
-}
-
-private class CarouselCellView: CarouselCell {
-    private weak var carouselView: CarouselView?
-    private weak var delegate:CarouselViewDelegate?
-    
-    init(rawIndex:Int, count:Int, view:UIView, carousel: CarouselView, delegate:CarouselViewDelegate?) {
-        super.init(rawIndex: rawIndex, count:count, view: view)
-        self.carouselView = carousel
-        self.delegate = delegate
-    }
-    
-    override func willUninstall() {
-        if let carousel = carouselView {
-            delegate?.carousel?(carousel, didUninstallCell: index)
-        }
-    }
-    
-    override func didUninstall() {
-        if let carousel = carouselView {
-            delegate?.carousel?(carousel, willUninstallCell: index)
-        }
-    }
-    
-    override func willInstall() {
-        if let carousel = carouselView {
-            delegate?.carousel?(carousel, willInstallCell: index)
-        }
-    }
-    
-    override func didInstall() {
-        if let carousel = carouselView {
-            delegate?.carousel?(carousel, didInstallCell: index)
-        }
+        delegate?.carouselDidInstallCell(index)
     }
 }
 
@@ -349,7 +258,7 @@ public enum CarouselPagingType {
     case Page   // paging by page
 }
 
-public extension CarouselView {
+public extension CarouselScrollView {
     /// cell witdh: greater than 1
     public var cellWidth:CGFloat {
         return _cellSize.width
@@ -360,7 +269,7 @@ public extension CarouselView {
     }
 }
 
-public class CarouselView: UIScrollView {
+public class CarouselScrollView: UIScrollView {
     private var baseInited = false
     /// visible cell count
     public var cellPerPage:Int = 1 {
@@ -398,7 +307,7 @@ public class CarouselView: UIScrollView {
     
     private var _preSize:CGSize = CGSizeZero
     private var _curFirstCellIndex:Int = 0
-    private var _delegateWrapper = CarouselScrollViewDelegateWrapper()
+    private var _ignoreScrollEvent = false
     
     /// cached cell size: default is zero, if is negative will cache all
     private var reusableCellSize:Int {
@@ -429,25 +338,16 @@ public class CarouselView: UIScrollView {
     }
     /// if true ignore pagingEnabled and use pagingRequired instead, default is true
     public var ignorePagingEnabled = true
+
+    
     /// data source of cell views
-    public weak var dataSource:CarouselViewDataSourse? {
-        didSet {
-            if dataSource !== oldValue {
-                reload()
-            }
-        }
-    }
+    weak var dataSource:CarouselDataSourse?
     /// scroll delegate
-    public weak var carouselDelegate:CarouselViewDelegate?
+    weak var carouselDelegate:CarouselDelegate?
     
     private var autoScrollTimer:NSTimer?
     private var autoScrollIncrease = true
-    
-    
-    private var contextKVO:Int = 0
-    private var kPaths = [String]()
-    private var kdelegatePath = "delegate"
-    private var kpagingEnabled = "pagingEnabled"
+
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -461,9 +361,6 @@ public class CarouselView: UIScrollView {
     
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
-        for path in kPaths {
-            removeObserver(self, forKeyPath: path)
-        }
         autoScrollTimer?.invalidate()
         autoScrollTimer = nil
         _reusableCells.clear()
@@ -481,36 +378,14 @@ public class CarouselView: UIScrollView {
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false
         pagingEnabled = false
-        delegate = _delegateWrapper
         _reusableCells.maxSize = reusableCellSize
 
-        _delegateWrapper.wrapper = self
         _preSize = frame.size
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationDidBecomeActiveNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationWillResignActiveNotification, object: nil)
-        
-        addObserver(self, forKeyPath: kdelegatePath, options: .New, context: &contextKVO)
-        kPaths.append(kdelegatePath)
-        addObserver(self, forKeyPath: kpagingEnabled, options: .New, context: &contextKVO)
-        kPaths.append(kpagingEnabled)
     }
-    
-    override public func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-        guard context == &contextKVO else {
-            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
-            return
-        }
-        
-        if keyPath == kdelegatePath {
-            if let value = change?[NSKeyValueChangeNewKey] as? UIScrollViewDelegate where value !== _delegateWrapper {
-                _delegateWrapper.source = value
-                delegate = _delegateWrapper
-            }
-        } else if keyPath == kpagingEnabled {
-            updatePagingEnabled()
-        }
-    }
+
     /**
      update pagingEnabled pagingRequired to avoid both true
      */
@@ -535,8 +410,10 @@ public class CarouselView: UIScrollView {
         switch notification.name {
         case UIApplicationDidBecomeActiveNotification:
             resumeAutoScroll()
+            break
         case UIApplicationWillResignActiveNotification:
             pauseAutoScroll()
+            break
         default:
             break
         }
@@ -571,12 +448,12 @@ public class CarouselView: UIScrollView {
     }
     
     private func fetchCell(index: Int, count:Int, rawIndex:Int) -> CarouselCell {
-        let view = dataSource?.carousel(self, viewForIndex: index) ?? UIView()
-        return CarouselCellView.init(rawIndex: rawIndex, count: count, view: view, carousel:self, delegate: carouselDelegate)
+        let view = dataSource?.cellForIndex(index) ?? UIView()
+        return CarouselCell.init(rawIndex: rawIndex, count: count, view: view, delegate: carouselDelegate)
     }
     
     @inline(__always) func numberOfView() -> Int? {
-        return dataSource?.numberOfView(self)
+        return dataSource?.numberOfCell()
     }
     
     /**
@@ -671,16 +548,16 @@ public class CarouselView: UIScrollView {
     }
     
     private func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
-        carouselDelegate?.carousel?(self, scrollFrom: from, to: to, progress: progress)
+        carouselDelegate?.carouselScrollFrom(from, to: to, progress: progress)
     }
     
     private func carouselDidScrollFrom(from:Int, to:Int) {
-        carouselDelegate?.carousel?(self, didScrollFrom: from, to: to)
+        carouselDelegate?.carouselDidScrollFrom(from, to: to)
     }
 }
 
 // 线性 cell
-extension CarouselView {
+extension CarouselScrollView {
     private func updateScrollProgressLinear() {
         guard let first = firstVisibleCell where first.rawIndex >= 0 && first.rawIndex < first.count else {
             return
@@ -811,7 +688,7 @@ extension CarouselView {
 }
 
 // loop cell
-extension CarouselView {
+extension CarouselScrollView {
     // cell zero offset
     private var _offsetCellIndex:Int {
         return cellPerPage * _loopPage
@@ -855,7 +732,7 @@ extension CarouselView {
     }
     
     private func updateContentOffsetLoop() {
-        _delegateWrapper.ignoreScrollEvent = false
+        _ignoreScrollEvent = false
         guard let count = numberOfView() where count > cellPerPage else {
             return
         }
@@ -867,12 +744,12 @@ extension CarouselView {
             let minX = bufferWidth
             let maxX = totalCellWidth + bufferWidth
             if contentOffset.x > maxX {
-                _delegateWrapper.ignoreScrollEvent = true
+                _ignoreScrollEvent = true
                 contentOffset.x -= totalCellWidth
                 _curFirstCellIndex = formatedInex(_curFirstCellIndex, ofCount: count)
                 updateVisibleCellLoop()
             } else if contentOffset.x < minX {
-                _delegateWrapper.ignoreScrollEvent = true
+                _ignoreScrollEvent = true
                 contentOffset.x += totalCellWidth
                 _curFirstCellIndex = formatedInex(_curFirstCellIndex, ofCount: count)
                 updateVisibleCellLoop()
@@ -883,12 +760,12 @@ extension CarouselView {
             let minY = bufferHeight
             let maxY = totalCellHeight + bufferHeight
             if contentOffset.y > maxY {
-                _delegateWrapper.ignoreScrollEvent = true
+                _ignoreScrollEvent = true
                 contentOffset.y -= bufferHeight
                 _curFirstCellIndex = formatedInex(_curFirstCellIndex, ofCount: count)
                 updateVisibleCellLoop()
             } else if contentOffset.y < minY {
-                _delegateWrapper.ignoreScrollEvent = true
+                _ignoreScrollEvent = true
                 contentOffset.y += bufferHeight
                 _curFirstCellIndex = formatedInex(_curFirstCellIndex, ofCount: count)
                 updateVisibleCellLoop()
@@ -996,7 +873,7 @@ extension CarouselView {
 }
 
 // support page enable and adjust content offset
-extension CarouselView: UIScrollViewDelegate {
+extension CarouselScrollView: UIScrollViewDelegate {
     // this deleate handle paging
     public func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         guard pagingRequired else {
@@ -1015,6 +892,12 @@ extension CarouselView: UIScrollViewDelegate {
     }
     // handle did scroll
     public func scrollViewDidScroll(scrollView: UIScrollView) {
+        guard !_ignoreScrollEvent else {
+            // update visible cells
+            updateVisibleCell()
+            return
+        }
+        
         // update visible cells
         updateVisibleCell()
         
@@ -1023,42 +906,42 @@ extension CarouselView: UIScrollViewDelegate {
         // update content offset(to restrict position) if needed
         updateContentOffset()
         
-        carouselDelegate?.carouselDidScroll?(self)
+        carouselDelegate?.carouselDidScroll()
     }
     
     public func scrollViewWillBeginDecelerating(scrollView: UIScrollView) {
-        carouselDelegate?.carouselWillBeginDragging?(self)
+        carouselDelegate?.carouselWillBeginDragging()
     }
     
     public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         // update content offset(to restrict position) if needed
         updateContentOffset()
         
-        carouselDelegate?.carouselDidEndDecelerating?(self)
+        carouselDelegate?.carouselDidEndDecelerating()
     }
     
     public func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
         // update content offset(to restrict position) if needed
         updateContentOffset()
         
-        carouselDelegate?.carouselDidEndScrollingAnimation?(self)
+        carouselDelegate?.carouselDidEndScrollingAnimation()
     }
     
     public func scrollViewWillBeginDragging(scrollView: UIScrollView) {
         pauseAutoScroll()
         
-        carouselDelegate?.carouselWillBeginDragging?(self)
+        carouselDelegate?.carouselWillBeginDragging()
     }
     
     public func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         resumeAutoScroll()
         
-        carouselDelegate?.carouselDidEndDragging?(self, willDecelerate: decelerate)
+        carouselDelegate?.carouselDidEndDraggingWillDecelerate(decelerate)
     }
 }
 
 // usefull extension
-extension CarouselView {
+extension CarouselScrollView {
     public var visibleCells:[CarouselCell] {
         var result = [CarouselCell]()
         switch direction {
@@ -1173,7 +1056,7 @@ extension CarouselView {
 }
 
 // support auto scoll
-public extension CarouselView {
+public extension CarouselScrollView {
     func autoScrollToNext() {
         nextCell(true)
     }
@@ -1224,7 +1107,7 @@ public extension CarouselView {
 }
 
 // add reload relative method
-public extension CarouselView {
+public extension CarouselScrollView {
     @inline(__always) private func reload(index:Int, withCount count: Int) {
         switch type {
         case .Linear:
@@ -1303,76 +1186,296 @@ public extension CarouselView {
     }
 }
 
-class CarouselScrollViewDelegateWrapper:NSObject, UIScrollViewDelegate {
-    weak var source:UIScrollViewDelegate?
-    weak var wrapper:UIScrollViewDelegate?
-    /// ignore scroll event: use if customer set content offset and want not fire delegate scrollViewDidScroll:
-    var ignoreScrollEvent = false
+
+
+public protocol CarouselViewDataSourse:class {
+    /**
+     number of view for carouse
+     
+     - parameter carousel: CarouselView instance
+     
+     - returns: number of view
+     */
+    func numberOfView(carousel:CarouselView) -> Int
+    /**
+     iew at index for carouse
+     
+     - parameter carousel: instance of CarouselView
+     - parameter index:    cell index for view
+     
+     - returns: view at cell index
+     */
+    func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView?
+}
+
+@objc public protocol CarouselViewDelegate:class {
+    /**
+     cell will add to carousel
+     
+     - parameter carousel: instance of CarouselView
+     - parameter cell:     cell index
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, willInstallCell cell:Int)
+    /**
+     cell will remove from carousel
+     
+     - parameter carousel: instance of CarouselView
+     - parameter cell:     cell index
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, willUninstallCell cell:Int)
+    /**
+     cell did add to carousel
+     
+     - parameter carousel: instance of CarouselView
+     - parameter cell:     cell index
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, didInstallCell cell:Int)
+    /**
+     cell did remove from carousel
+     
+     - parameter carousel: instance of CarouselView
+     - parameter cell:     cell index
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, didUninstallCell cell:Int)
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        wrapper?.scrollViewDidScroll?(scrollView)
-        source?.scrollViewDidScroll?(scrollView)
+    
+    
+    // MARK: scroll relate delegate
+    /**
+     cell scroll progress
+     
+     - parameter carousel: instance of CarouselView
+     - parameter from:     from cell(first visiable cell)
+     - parameter to:       to cell
+     - parameter progress: progess for scroll: progress > 0, cell grow direction, < 0 cell decrease diretion
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, scrollFrom from:Int, to:Int, progress:CGFloat)
+    /**
+     cell did scroll from cell to cell
+     
+     - parameter carousel: instance of CarouselView
+     - parameter from:     from cell(first visiable cell)
+     - parameter to:       to cell
+     
+     - returns: Void
+     */
+    optional func carousel(carousel:CarouselView, didScrollFrom from:Int, to:Int)
+    
+    
+    optional func carouselDidScroll(carousel:CarouselView)
+    optional func carouselWillBeginDragging(carousel:CarouselView)
+    optional func carouselDidEndDragging(carousel:CarouselView, willDecelerate decelerate: Bool)
+    
+    optional func carouselWillBeginDecelerating(carousel:CarouselView)
+    optional func carouselDidEndDecelerating(carousel:CarouselView)
+    
+    optional func carouselDidEndScrollingAnimation(carousel:CarouselView)
+}
+
+
+class CarouselDataSourseForView:CarouselDataSourse {
+    weak var carousel:CarouselView?
+    weak var dataSource:CarouselViewDataSourse?
+    
+    func numberOfCell() -> Int {
+        guard let carousel = carousel else {
+            return 0
+        }
+        return dataSource?.numberOfView(carousel) ?? 0
     }
     
-    func scrollViewDidZoom(scrollView: UIScrollView) {
-        wrapper?.scrollViewDidZoom?(scrollView)
-        source?.scrollViewDidZoom?(scrollView)
-    }
-    
-    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
-        wrapper?.scrollViewWillBeginDragging?(scrollView)
-        source?.scrollViewWillBeginDragging?(scrollView)
-    }
-    
-    func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        wrapper?.scrollViewWillEndDragging?(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
-        source?.scrollViewWillEndDragging?(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
-    }
-    
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        wrapper?.scrollViewDidEndDragging?(scrollView, willDecelerate: decelerate)
-        source?.scrollViewDidEndDragging?(scrollView, willDecelerate: decelerate)
-    }
-    
-    func scrollViewWillBeginDecelerating(scrollView: UIScrollView) {
-        wrapper?.scrollViewWillBeginDecelerating?(scrollView)
-        source?.scrollViewWillBeginDecelerating?(scrollView)
-    }
-    
-    func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
-        wrapper?.scrollViewDidEndDecelerating?(scrollView)
-        source?.scrollViewDidEndDecelerating?(scrollView)
-    }
-    
-    func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
-        wrapper?.scrollViewDidEndScrollingAnimation?(scrollView)
-        source?.scrollViewDidEndScrollingAnimation?(scrollView)
-    }
-    
-    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
-        return source?.viewForZoomingInScrollView?(scrollView)
-    }
-    
-    func scrollViewWillBeginZooming(scrollView: UIScrollView, withView view: UIView?) {
-        wrapper?.scrollViewWillBeginZooming?(scrollView, withView: view)
-        source?.scrollViewWillBeginZooming?(scrollView, withView: view)
-    }
-    
-    func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView?, atScale scale: CGFloat) {
-        wrapper?.scrollViewDidEndZooming?(scrollView, withView: view, atScale: scale)
-        source?.scrollViewDidEndZooming?(scrollView, withView: view, atScale: scale)
-    }
-    
-    func scrollViewShouldScrollToTop(scrollView: UIScrollView) -> Bool {
-        return source?.scrollViewShouldScrollToTop?(scrollView) ?? true
-    }
-    
-    func scrollViewDidScrollToTop(scrollView: UIScrollView) {
-        wrapper?.scrollViewDidScrollToTop?(scrollView)
-        source?.scrollViewDidScrollToTop?(scrollView)
+    func cellForIndex(index: Int) -> UIView? {
+        guard let carousel = carousel else {
+            return nil
+        }
+        return dataSource?.carousel(carousel, viewForIndex: index)
     }
 }
 
+class CarouselDelegateForView:CarouselDelegate {
+    weak var carousel:CarouselView?
+    weak var delgate:CarouselViewDelegate?
+    
+    func carouselWillInstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, willInstallCell: index)
+    }
+    func carouselWillUninstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, willUninstallCell: index)
+    }
+    func carouselDidInstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didInstallCell: index)
+    }
+    func carouselDidUninstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didUninstallCell: index)
+    }
+    
+    // progresss
+    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, scrollFrom: from, to: to, progress: progress)
+    }
+    func carouselDidScrollFrom(from:Int, to:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didScrollFrom: from, to: to)
+    }
+    
+    
+    func carouselDidScroll() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidScroll?(carousel)
+    }
+    func carouselWillBeginDragging() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselWillBeginDragging?(carousel)
+    }
+    func carouselDidEndDraggingWillDecelerate(decelerate: Bool) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndDragging?(carousel, willDecelerate: decelerate)
+    }
+    
+    func carouselWillBeginDecelerating() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselWillBeginDecelerating?(carousel)
+    }
+    func carouselDidEndDecelerating() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndDecelerating?(carousel)
+    }
+    
+    func carouselDidEndScrollingAnimation() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndScrollingAnimation?(carousel)
+    }
+}
+
+
+public class CarouselView:UIView {
+    private var baseInited = false
+    public let _carousel = CarouselScrollView()
+    /// visible cell count
+    public var cellPerPage:Int = 1 {
+        didSet {
+            _carousel.cellPerPage = max(cellPerPage, 1)
+        }
+    }
+    /// buffer cell count(cell create but not visible)
+    public var buffeCellCount:Int = 1 {        // one side
+        didSet {
+            _carousel.buffeCellCount = max(buffeCellCount, 0)
+        }
+    }
+    
+    /// reuse cell size number, if negative will cache all cells( high memory usage)
+    public var cacheSize:Int = 0 {
+        didSet {
+            _carousel.cacheSize = cacheSize
+        }
+    }
+    /// layout direction
+    public var direction = CarouselDirection.Horizontal {
+        didSet {
+            _carousel.direction = direction
+        }
+    }
+    /// cell layout in Loop or Linear
+    public var type = CarouselType.Linear {
+        didSet {
+            _carousel.type = type
+        }
+    }
+    
+    /// data source of cell views
+    weak var dataSource:CarouselViewDataSourse? {
+        didSet {
+            if _dataSource.dataSource !== dataSource {
+                _dataSource.dataSource = dataSource
+            }
+        }
+    }
+    /// scroll delegate
+    weak var delegate:CarouselViewDelegate? {
+        didSet {
+            if _delegate.delgate !== delegate {
+                _delegate.delgate = delegate
+                _carousel.setNeedsLayout()
+            }
+        }
+    }
+    private let _dataSource = CarouselDataSourseForView()
+    private let _delegate = CarouselDelegateForView()
+    
+    required public init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        baseInit()
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        baseInit()
+    }
+    
+    private func baseInit() {
+        guard !baseInited else {
+            return
+        }
+        baseInited = true
+        
+        _dataSource.carousel = self
+        _delegate.carousel = self
+        
+        addSubview(_carousel)
+        _carousel.frame = bounds
+        
+        _carousel.dataSource = _dataSource
+        _carousel.carouselDelegate = _delegate
+        _carousel.reload()
+    }
+    
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        if !CGRectEqualToRect(_carousel.frame, bounds) {
+            _carousel.frame = bounds
+        }
+    }
+}
 
 public protocol CarouselViewControllerDataSourse:class {
     /**
@@ -1466,263 +1569,222 @@ public protocol CarouselViewControllerDataSourse:class {
     optional func carouselDidEndScrollingAnimation(carousel:CarouselViewController)
 }
 
-private class CarouselCellViewController:CarouselCell {
-    private weak var viewController:UIViewController?
-    private weak var carouselViewController:CarouselViewController?
-    private weak var vcDelegate:CarouselViewControllerDelegate?
-    
-    init(rawIndex: Int, count: Int, viewController: UIViewController, carouselViewController:CarouselViewController?, vcDelegate:CarouselViewControllerDelegate?) {
-        super.init(rawIndex: rawIndex, count: count, view: viewController.view)
-        
-        self.viewController = viewController
-        self.carouselViewController = carouselViewController
-        self.vcDelegate = vcDelegate
-    }
-    
-    private override func willUninstall() {
-        if let carousel = carouselViewController {
-            viewController?.willMoveToParentViewController(nil)
-            vcDelegate?.carousel?(carousel, willUninstallCell: index)
-        }
-    }
-    
-    private override func didUninstall() {
-        if let carousel = carouselViewController {
-            viewController?.removeFromParentViewController()
-            vcDelegate?.carousel?(carousel, didUninstallCell: index)
-        }
-    }
-    
-    private override func willInstall() {
-        if let carousel = carouselViewController {
-            if let vc = viewController {
-                carousel.addChildViewController(vc)
-            }
-            vcDelegate?.carousel?(carousel, willInstallCell: index)
-        }
-    }
-    
-    private override func didInstall() {
-        if let carousel = carouselViewController {
-            viewController?.didMoveToParentViewController(carousel)
-            vcDelegate?.carousel?(carousel, didInstallCell: index)
-        }
-    }
-}
 
-private class CarouselViewInViewController:CarouselView {
-    weak var carouselViewController:CarouselViewController?
-    weak var vcDataSource:CarouselViewControllerDataSourse?
-    weak var vcDelegate:CarouselViewControllerDelegate?
+
+class CarouselDataSourseForViewController:CarouselDataSourse {
+    weak var carousel:CarouselViewController?
+    weak var dataSource:CarouselViewControllerDataSourse?
     
-    override func numberOfView() -> Int? {
-        guard let vc = carouselViewController else {
+    func numberOfCell() -> Int {
+        guard let carousel = carousel else {
+            return 0
+        }
+        return dataSource?.numberOfViewController(carousel) ?? 0
+    }
+    
+    func cellForIndex(index: Int) -> UIView? {
+        guard let carousel = carousel else {
             return nil
         }
-        return vcDataSource?.numberOfViewController(vc)
-    }
-    
-    override func fetchCell(index: Int, count: Int, rawIndex: Int) -> CarouselCell {
-        var tvc:UIViewController!
-        if let vc = carouselViewController, vc2 = vcDataSource?.carousel(vc, viewControllerForIndex: index) {
-            tvc = vc2
-        } else {
-            tvc = UIViewController()
-        }
-        return CarouselCellViewController.init(rawIndex: rawIndex, count: count, viewController: tvc, carouselViewController: carouselViewController, vcDelegate: vcDelegate)
-    }
-    
-    private override func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carousel?(vc, scrollFrom: from, to: to, progress: progress)
-    }
-    
-    private override func carouselDidScrollFrom(from:Int, to:Int) {
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carousel?(vc, didScrollFrom: from, to: to)
-    }
-    
-    
-    // handle did scroll
-    override func scrollViewDidScroll(scrollView: UIScrollView) {
-        super.scrollViewDidScroll(scrollView)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselDidScroll?(vc)
-    }
-    
-    override func scrollViewWillBeginDecelerating(scrollView: UIScrollView) {
-        super.scrollViewWillBeginDecelerating(scrollView)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselWillBeginDecelerating?(vc)
-    }
-    
-    override func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
-        super.scrollViewDidEndDecelerating(scrollView)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselDidEndDecelerating?(vc)
-    }
-    
-    override func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
-        super.scrollViewDidEndScrollingAnimation(scrollView)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselDidEndScrollingAnimation?(vc)
-    }
-    
-    override func scrollViewWillBeginDragging(scrollView: UIScrollView) {
-        super.scrollViewWillBeginDragging(scrollView)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselWillBeginDragging?(vc)
-    }
-    
-    override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        super.scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
-        guard let vc = carouselViewController else {
-            return
-        }
-        vcDelegate?.carouselDidEndDragging?(vc, willDecelerate: decelerate)
+        return dataSource?.carousel(carousel, viewControllerForIndex: index)?.view
     }
 }
 
+class CarouselDelegateForViewController:CarouselDelegate {
+    weak var carousel:CarouselViewController?
+    weak var delgate:CarouselViewControllerDelegate?
+    
+    func carouselWillInstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, willInstallCell: index)
+    }
+    func carouselWillUninstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, willUninstallCell: index)
+    }
+    func carouselDidInstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didInstallCell: index)
+    }
+    func carouselDidUninstallCell(index:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didUninstallCell: index)
+    }
+    
+    // progresss
+    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, scrollFrom: from, to: to, progress: progress)
+    }
+    func carouselDidScrollFrom(from:Int, to:Int) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didScrollFrom: from, to: to)
+    }
+    
+    
+    func carouselDidScroll() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidScroll?(carousel)
+    }
+    func carouselWillBeginDragging() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselWillBeginDragging?(carousel)
+    }
+    func carouselDidEndDraggingWillDecelerate(decelerate: Bool) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndDragging?(carousel, willDecelerate: decelerate)
+    }
+    
+    func carouselWillBeginDecelerating() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselWillBeginDecelerating?(carousel)
+    }
+    func carouselDidEndDecelerating() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndDecelerating?(carousel)
+    }
+    
+    func carouselDidEndScrollingAnimation() {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carouselDidEndScrollingAnimation?(carousel)
+    }
+}
 
 public class CarouselViewController: UIViewController {
     /// visible cell count
     public var cellPerPage:Int = 1 {
         didSet {
-            _carouselView.cellPerPage = cellPerPage
+            _carousel.cellPerPage = max(cellPerPage, 1)
         }
     }
     /// buffer cell count(cell create but not visible)
     public var buffeCellCount:Int = 1 {        // one side
         didSet {
-            _carouselView.buffeCellCount = buffeCellCount
-        }
-    }
-    
-    /// data source of cell viewcontrollers
-    public weak var dataSource:CarouselViewControllerDataSourse? {
-        didSet {
-            if dataSource !== oldValue {
-                _carouselView.vcDataSource = dataSource
-            }
-        }
-    }
-    
-    /// scroll delegate
-    public weak var delegate:CarouselViewControllerDelegate? {
-        didSet {
-            if delegate !== oldValue {
-                _carouselView.vcDelegate = delegate
-            }
+            _carousel.buffeCellCount = max(buffeCellCount, 0)
         }
     }
     
     /// reuse cell size number, if negative will cache all cells( high memory usage)
     public var cacheSize:Int = 0 {
         didSet {
-            _carouselView.cacheSize = cacheSize
+            _carousel.cacheSize = cacheSize
         }
     }
     /// layout direction
     public var direction = CarouselDirection.Horizontal {
         didSet {
-            _carouselView.direction = direction
+            _carousel.direction = direction
         }
     }
     /// cell layout in Loop or Linear
     public var type = CarouselType.Linear {
         didSet {
-            _carouselView.type = type
+            _carousel.type = type
         }
     }
-    /// support paging
-    public var pagingRequired = true {
+    
+    /// data source of cell views
+    weak var dataSource:CarouselViewControllerDataSourse? {
         didSet {
-            _carouselView.pagingRequired = pagingRequired
+            if _dataSource.dataSource !== dataSource {
+                _dataSource.dataSource = dataSource
+            }
         }
     }
+    /// scroll delegate
+    weak var delegate:CarouselViewControllerDelegate? {
+        didSet {
+            if _delegate.delgate !== delegate {
+                _delegate.delgate = delegate
+                _carousel.setNeedsLayout()
+            }
+        }
+    }
+    private let _dataSource = CarouselDataSourseForViewController()
+    private let _delegate = CarouselDelegateForViewController()
+    
     
     /// if true viewWillAppear will resume auto scroll, viewDidDisappear will pause auto scroll
     public var autoScrolOnlyViewAppeared = true
     
-    private var _carouselView: CarouselViewInViewController {
-        return view as! CarouselViewInViewController
-    }
-    
-    public var carouselView: CarouselView {
-        return view as! CarouselView
+    public var _carousel: CarouselScrollView {
+        return view as! CarouselScrollView
     }
     
     override public func loadView() {
-        let carouselView = CarouselViewInViewController.init(frame: UIScreen.mainScreen().bounds)
-        carouselView.vcDataSource = dataSource
-        carouselView.vcDelegate = delegate
-        carouselView.carouselViewController = self
+        _dataSource.carousel = self
+        _delegate.carousel = self
+        
+        let carouselView = CarouselScrollView.init(frame: UIScreen.mainScreen().bounds)
+        carouselView.dataSource = _dataSource
+        carouselView.carouselDelegate = _delegate
         view = carouselView
     }
 }
 
+
+public protocol CarouselProtocol {
+    var _carousel: CarouselScrollView {get}
+}
+
+
 // usefull extension
-public extension CarouselViewController {
+extension CarouselProtocol {
     public var visibleCells:[CarouselCell] {
-        return _carouselView.visibleCells
+        return _carousel.visibleCells
     }
     
     public var firstVisibleCell:CarouselCell? {
-        return _carouselView.firstVisibleCell
+        return _carousel.firstVisibleCell
     }
     
     public var lastVisibleIndex:CarouselCell? {
-        return _carouselView.lastVisibleIndex
+        return _carousel.lastVisibleIndex
     }
     
     public var firstVisibleCellIndex:CGFloat {
-        return _carouselView.firstVisibleCellIndex
+        return _carousel.firstVisibleCellIndex
     }
     
     public func scrollToIndex(index:Int, animated:Bool = false) {
-        return _carouselView.scrollToIndex(index, animated: animated)
+        return _carousel.scrollToIndex(index, animated: animated)
     }
     
     public func nextCell(animated:Bool = false) {
-        _carouselView.nextCell(animated)
+        _carousel.nextCell(animated)
     }
     
     public func preNext(animated:Bool = false) {
-        _carouselView.preNext(animated)
+        _carousel.preNext(animated)
     }
 }
 
-// support auto scoll
-public extension CarouselViewController {
-    
-    override public func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        if autoScrolOnlyViewAppeared {
-            carouselView.resumeAutoScroll()
-        }
-    }
-    
-    override public func viewDidDisappear(animated: Bool) {
-        super.viewDidDisappear(animated)
-        if autoScrolOnlyViewAppeared {
-            carouselView.pauseAutoScroll()
-        }
-    }
-    
+// auto scoll
+extension CarouselProtocol {
     /**
      auto scroll
      default auto scroll is disable
@@ -1730,45 +1792,67 @@ public extension CarouselViewController {
      - parameter increase:     cell increase or decrease
      */
     public func autoScroll(timeInterval:NSTimeInterval, increase:Bool) {
-        _carouselView.autoScroll(timeInterval, increase: increase)
+        _carousel.autoScroll(timeInterval, increase: increase)
     }
     
     /**
      stop auto scroll
      */
     public func stopAutoScroll() {
-        _carouselView.stopAutoScroll()
+        _carousel.stopAutoScroll()
     }
     /**
      pause auto scroll
      */
     public func pauseAutoScroll() {
-        _carouselView.pauseAutoScroll()
+        _carousel.pauseAutoScroll()
     }
     /**
      resume auto scroll
      if your never call autoScroll(_:increase), auto scroll will not work
      */
     public func resumeAutoScroll() {
-        _carouselView.resumeAutoScroll()
+        _carousel.resumeAutoScroll()
     }
 }
 
 // add reload relative method
-public extension CarouselViewController {
+extension CarouselProtocol {
     public func reload() {
-        _carouselView.reload()
+        _carousel.reload()
     }
     
     public func reload(index index:Int) {
-        _carouselView.reload(index: index)
+        _carousel.reload(index: index)
     }
     
     public func reload(indexs indexs:[Int]) {
-        _carouselView.reload(indexs: indexs)
+        _carousel.reload(indexs: indexs)
     }
     
     public func reloadvisibleCells() {
-        _carouselView.reloadvisibleCells()
+        _carousel.reloadvisibleCells()
+    }
+}
+
+
+// support auto scoll
+extension CarouselView: CarouselProtocol {
+
+}
+
+extension CarouselViewController: CarouselProtocol {
+    override public func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        if autoScrolOnlyViewAppeared {
+            _carousel.resumeAutoScroll()
+        }
+    }
+    
+    override public func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        if autoScrolOnlyViewAppeared {
+            _carousel.pauseAutoScroll()
+        }
     }
 }
