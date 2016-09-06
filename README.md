@@ -15,14 +15,14 @@
 
 CarouselSwift implement carouse effect. Available Features:
 * Both Loop and Linear:
-    * Loop: page is loop, act seems infinite.
-    * Linear: Page is limit and highly optimization in memory usage.
+    * Loop: cell is loop, act seems infinite.
+    * Linear: cell is limit and highly optimization in memory usage.
 * Both horizontal and vertical layout direction
-* Multi page in view.
+* Multi cell in view.
 * Modify delegate of UIPanGestureRecognizer is available
 * Other:
     * auto scoll: implement with NSTimer and easy to usage
-    * scroll page progress: directly available in delegate
+    * scroll cell progress: directly available in delegate
 
 #### CarouselSwift Adv & Dis:
 
@@ -37,11 +37,11 @@ CarouselSwift implement carouse effect. Available Features:
     | :------ | :------: | :------: | :------: | :------: |
     | Horizontal Layout | √  | ×  | √  | √ |
     | Vertical Layout |  √  | ×  | √ | √ |
-    | Page arrange in linear  | √  | × | √  | √ |
-    | Page arrange in loop  | √  | ×  | ×  | √ |
-    | cell size require same  | √  | ×  | ×  | √ |
+    | Cell arrange in linear  | √  | × | √  | √ |
+    | Cell arrange in loop  | √  | ×  | ×  | √ |
+    | Cell size require same  | √  | ×  | ×  | √ |
     | Reusage optimization | √  | √  | √  | √ |
-    | cell reusable  | ×(partial)  | √  | √ | √ |
+    | Cell reusable  | ×(partial)  | √  | √ | √ |
     | multi cell in one page | √  | √  | √ | × |
     | pagingEnable  | √  | ×  | ×  | √ |
     | UIPanGestureRecognizer delegate modify  | √ | × |  × |  × |
@@ -51,7 +51,7 @@ CarouselSwift implement carouse effect. Available Features:
 	* CarouselSwift VS Other similar component：
 		* CarouselSwift horizontal and vertical layout direction, other one only
 		* CarouselSwift support cell in linear and loop arrange, other one only
-		* CarouselSwift page reuse ability avoid large memory cost
+		* CarouselSwift cell reuse ability avoid large memory cost
 		* CarouselSwift multi view in one page
 
 * Restriction:
@@ -61,7 +61,7 @@ CarouselSwift implement carouse effect. Available Features:
 
 CarouselSwift implement with UIScrollView
 * adopt UIScrollView as container
-* Loop(infinite)：use N + 2 page, and set contentOffset when reach 0 and N
+* Loop(infinite)：use N + 2 cell, and set contentOffset when reach 0 and N
 * auto scroll：NSTimer
 * auto scroll and manual scroll:  UIScrollViewDelegate的 scrollViewWillBeginDragging(_:) invalidate timer, scrollViewDidEndDragging(_:willDecelerate:) fire timer
 
@@ -72,15 +72,15 @@ CarouselSwift implement with UIScrollView
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
-carousel.type = .Loop   // set page loop or linear
-carousel.dataSource = self  // set data source page view
+carousel.type = .Loop   // set cell loop or linear
+carousel.dataSource = self  // set data source cell view
 carousel.reload()   // load datas
 
 carousel.autoScroll(2, increase: true)  // set auto scroll
-carousel.carouselDelegate = self    // set scroll delegate
+carousel.delegate = self    // set scroll delegate
 
-carousel.scrollToPage(1) // scroll to specify page
-carousel.visiblePageCount = 3 // number view show in one page
+carousel.scrollToCell(1) // scroll to specify cell
+carousel.cellPerPage = 3 // number view show in one page
 
 
 // CarouselViewDataSourse
@@ -92,15 +92,15 @@ func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView?
 ### CarouselViewController
 ```Swift
 let carousel = CarouselViewController()
-carousel.type = .Loop   // set page loop or linear
-carousel.dataSource = self  // set data source page view
+carousel.type = .Loop   // set cell loop or linear
+carousel.dataSource = self  // set data source cell view
 carousel.reload()   // load datas
 
 carousel.autoScroll(2, increase: true)  // set auto scroll
-carousel.carouselDelegate = self    // set scroll delegate
+carousel.delegate = self    // set scroll delegate
 
-carousel.scrollToPage(1) // scroll to specify page
-carousel.visiblePageCount = 3 // number view show in one page
+carousel.scrollToCell(1) // scroll to specify cell
+carousel.cellPerPage = 3 // number view show in one page
 
 
 // CarouselViewControllerDataSourse
@@ -125,7 +125,7 @@ pod 'CarouselSwift'
 CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下功能:
 * 轮播和线性滑动支持:
     * 轮播（Loop）: 也就是我们通常说的无限循环功能
-    * 线性滑动（Linear）: 采用 reusable page的方式, 使用极少的内存资源(需要时候进行显示); 类似 UITableView, UICollectionView, UIPageViewController
+    * 线性滑动（Linear）: 采用 reusable cell的方式, 使用极少的内存资源(需要时候进行显示); 类似 UITableView, UICollectionView, UIPageViewController
 * 支持多个方向:
     * 水平: 横向(Horizontal)
     * 垂直: 纵向（Vertical)
@@ -176,7 +176,7 @@ CarouselSwift 旋转木马效果这个是最为常见的效果, 实现了以下�
 
 CarouselSwift 是采用 UIScrollView 来实现的
 * 采用的是 UIScrollView 作为容器来实现的
-* 轮播(无限循环)：使用 N + 2 个page, 在滑动到 0, N的时候通过调整contentOffset
+* 轮播(无限循环)：使用 N + 2 个cell, 在滑动到 0, N的时候通过调整contentOffset
 * 自动滚动：通过使用 NSTimer 定时来实现
 * 自动滚动与手势配合:  UIScrollViewDelegate的 scrollViewWillBeginDragging(_:) 关闭timer, scrollViewDidEndDragging(_:willDecelerate:) 开启timer
 
@@ -187,15 +187,15 @@ CarouselSwift 是采用 UIScrollView 来实现的
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
-carousel.type = .Loop   // 设置内容 page 是否循环
-carousel.dataSource = self  // 设置数据源 page view
+carousel.type = .Loop   // 设置内容 cell 是否循环
+carousel.dataSource = self  // 设置数据源 cell view
 carousel.reload()   // 加载数据
 
 carousel.autoScroll(2, increase: true)  // 设置自动滚动
-carousel.carouselDelegate = self    // 设置滚动 delegate, 获取滚动进度
+carousel.delegate = self    // 设置滚动 delegate, 获取滚动进度
 
-carousel.scrollToPage(1) // 滚动到指定 page
-carousel.visiblePageCount = 3 // 单页可以显示 view 数量
+carousel.scrollToCell(1) // 滚动到指定 cell
+carousel.cellPerPage = 3 // 单页可以显示 view 数量
 
 
 // CarouselViewDataSourse
@@ -207,15 +207,15 @@ func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView? // index
 ### CarouselViewController
 ```Swift
 let carousel = CarouselViewController()
-carousel.carouselView.type = .Loop   // 设置内容 page 是否循环
-carousel.dataSource = self  // 设置数据源 page view
+carousel.carouselView.type = .Loop   // 设置内容 cell 是否循环
+carousel.dataSource = self  // 设置数据源 cell view
 carousel.reload()   // 加载数据
 
 carousel.autoScroll(2, increase: true)  // 设置自动滚动
-carousel.carouselDelegate = self    // 设置滚动 delegate, 获取滚动进度
+carousel.delegate = self    // 设置滚动 delegate, 获取滚动进度
 
-carousel.scrollToPage(1) // 滚动到指定 page
-carousel.visiblePageCount = 3 // 单页可以显示 view 数量
+carousel.scrollToCell(1) // 滚动到指定 cell
+carousel.cellPerPage = 3 // 单页可以显示 view 数量
 
 
 // CarouselViewControllerDataSourse

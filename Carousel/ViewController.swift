@@ -31,6 +31,7 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         carousel.type = .Loop
         carousel.dataSource = self
         carousel.delegate = self
+        carousel.pagingType = .CellLimit
         carousel.reload()
 
         carousel.autoScroll(2, increase: true)

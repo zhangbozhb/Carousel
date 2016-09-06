@@ -510,7 +510,7 @@ public class CarouselScrollView: UIScrollView {
         }
         
         if shouldAdjustCell {
-            scrollToIndex(0)
+            scrollToCell(0)
         }
     }
     
@@ -1044,7 +1044,7 @@ extension CarouselScrollView {
         }
     }
     
-    public func scrollToIndex(index:Int, animated:Bool = false) {
+    public func scrollToCell(index:Int, animated:Bool = false) {
         switch type {
         case .Linear:
             var offset = frameLinear(index).origin
@@ -1069,14 +1069,14 @@ extension CarouselScrollView {
         guard let first = firstVisibleCell else {
             return
         }
-        scrollToIndex(first.rawIndex + 1, animated: animated)
+        scrollToCell(first.rawIndex + 1, animated: animated)
     }
     
     public func preNext(animated:Bool = false) {
         guard let first = firstVisibleCell else {
             return
         }
-        scrollToIndex(first.rawIndex - 1, animated: animated)
+        scrollToCell(first.rawIndex - 1, animated: animated)
     }
 }
 
@@ -1839,8 +1839,8 @@ extension CarouselProtocol {
         return _carousel.firstVisibleCellIndex
     }
     
-    public func scrollToIndex(index:Int, animated:Bool = false) {
-        return _carousel.scrollToIndex(index, animated: animated)
+    public func scrollToCell(index:Int, animated:Bool = false) {
+        return _carousel.scrollToCell(index, animated: animated)
     }
     
     public func nextCell(animated:Bool = false) {
