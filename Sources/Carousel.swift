@@ -35,10 +35,10 @@ protocol CarouselDataSourse:class {
 
 protocol CarouselDelegate:class {
     // install uninstall
-    func carouselWillInstallCell(index:Int)
-    func carouselWillUninstallCell(index:Int)
-    func carouselDidInstallCell(index:Int)
-    func carouselDidUninstallCell(index:Int)
+    func carouselWillInstallCell(cell:CarouselCell)
+    func carouselWillUninstallCell(cell:CarouselCell)
+    func carouselDidInstallCell(cell:CarouselCell)
+    func carouselDidUninstallCell(cell:CarouselCell)
     
     // progresss
     func carouselScrollFrom(from:Int, to:Int, progress:CGFloat)
@@ -101,20 +101,6 @@ public class CarouselCell {
         return self
     }
     
-    func reuse(view:UIView) {
-        guard self.view !== view else {
-            return
-        }
-        
-        let pre = self.view
-        self.view = view
-        if let c = pre.superview {
-            c.insertSubview(view, aboveSubview: pre)
-            view.frame = pre.frame
-            pre.removeFromSuperview()
-        }
-    }
-    
     public func uninstall() {
         willUninstall()
         view.removeFromSuperview()
@@ -140,19 +126,19 @@ public class CarouselCell {
     }
     
     func willUninstall() {
-        delegate?.carouselWillUninstallCell(index)
+        delegate?.carouselWillUninstallCell(self)
     }
     
     func didUninstall() {
-        delegate?.carouselDidUninstallCell(index)
+        delegate?.carouselDidUninstallCell(self)
     }
     
     func willInstall() {
-        delegate?.carouselWillInstallCell(index)
+        delegate?.carouselWillInstallCell(self)
     }
     
     func didInstall() {
-        delegate?.carouselDidInstallCell(index)
+        delegate?.carouselDidInstallCell(self)
     }
 }
 
@@ -1151,29 +1137,20 @@ public extension CarouselScrollView {
         switch type {
         case .Linear:
             if index >= 0 && index < count {
-                let p = fetchCell(index, count: count, rawIndex: index)
-                if let _ = _reusableCells.cacheCell(index, count: count, removeFromCache: false) {
-                    _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
-                } else {
-                    for vp in visibleCells {
-                        if vp.rawIndex == p.rawIndex {
-                            vp.reuse(p.view)
-                            break
-                        }
+                for c in visibleCells {
+                    if c.index == index {
+                        let cell = fetchCell(index, count: count, rawIndex: c.rawIndex)
+                        cell.install(self, frame: type == .Linear ? frameLinear(c.rawIndex) : frameLoop(c.rawIndex))
+                        break
                     }
                 }
             }
         case .Loop:
-            let findex = formatedInex(index, ofCount: count)
-            let p = fetchCell(findex, count: count, rawIndex: index)
-            if let _ = _reusableCells.cacheCell(index, count: count, removeFromCache: false) {
-                _reusableCells.push(p, uninstall: true, ignoreSizeLimit: true)
-            } else {
-                for vp in visibleCells {
-                    if vp.index == p.index {
-                        vp.reuse(p.view)
-                        break
-                    }
+            for c in visibleCells {
+                if c.index == index {
+                    let cell = fetchCell(index, count: count, rawIndex: c.rawIndex)
+                    cell.install(self, frame: type == .Linear ? frameLinear(c.rawIndex) : frameLoop(c.rawIndex))
+                    break
                 }
             }
         }
@@ -1219,8 +1196,9 @@ public extension CarouselScrollView {
             return
         }
         
-        for vp in visibleCells {
-            vp.reuse(fetchCell(vp.index, count: vp.count, rawIndex: vp.rawIndex).view)
+        for c in visibleCells {
+            let cell = fetchCell(c.index, count: count, rawIndex: c.rawIndex)
+            cell.install(self, frame: type == .Linear ? frameLinear(c.rawIndex) : frameLoop(c.rawIndex))
         }
     }
 }
@@ -1345,29 +1323,29 @@ class CarouselDelegateForView:CarouselDelegate {
     weak var carousel:CarouselView?
     weak var delgate:CarouselViewDelegate?
     
-    func carouselWillInstallCell(index:Int) {
+    func carouselWillInstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, willInstallCell: index)
+        delgate?.carousel?(carousel, willInstallCell: cell.index)
     }
-    func carouselWillUninstallCell(index:Int) {
+    func carouselWillUninstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, willUninstallCell: index)
+        delgate?.carousel?(carousel, willUninstallCell: cell.index)
     }
-    func carouselDidInstallCell(index:Int) {
+    func carouselDidInstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, didInstallCell: index)
+        delgate?.carousel?(carousel, didInstallCell: cell.index)
     }
-    func carouselDidUninstallCell(index:Int) {
+    func carouselDidUninstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, didUninstallCell: index)
+        delgate?.carousel?(carousel, didUninstallCell: cell.index)
     }
     
     // progresss
@@ -1522,6 +1500,7 @@ public class CarouselView:UIView {
     }
 }
 
+//// CarouselViewController
 public protocol CarouselViewControllerDataSourse:class {
     /**
      number of view controller for carouse
@@ -1614,7 +1593,30 @@ public protocol CarouselViewControllerDataSourse:class {
     optional func carouselDidEndScrollingAnimation(carousel:CarouselViewController)
 }
 
+class CarouselCellForViewController:CarouselCell {
+    private var viewController:UIViewController?
+    
+    deinit {
+        viewController?.removeFromParentViewController()
+        viewController?.didMoveToParentViewController(nil)
+        viewController = nil
+    }
+}
 
+class CarouselScrollViewForViewController:CarouselScrollView {
+    private override func fetchCell(index: Int, count: Int, rawIndex: Int) -> CarouselCell {
+        if let ds = dataSource as? CarouselDataSourseForViewController {
+            if let ds1 = ds.dataSource, carousel = ds.carousel {
+                let vc = ds1.carousel(carousel, viewControllerForIndex: index)
+                let view = vc?.view ?? UIView()
+                let cell = CarouselCellForViewController.init(rawIndex: rawIndex, count: count, view: view, delegate: carouselDelegate)
+                cell.viewController = vc
+                return cell
+            }
+        }
+        return super.fetchCell(index, count: count, rawIndex: rawIndex)
+    }
+}
 
 class CarouselDataSourseForViewController:CarouselDataSourse {
     weak var carousel:CarouselViewController?
@@ -1639,29 +1641,45 @@ class CarouselDelegateForViewController:CarouselDelegate {
     weak var carousel:CarouselViewController?
     weak var delgate:CarouselViewControllerDelegate?
     
-    func carouselWillInstallCell(index:Int) {
+    func carouselWillInstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, willInstallCell: index)
+        if let c = cell as? CarouselCellForViewController, vc = c.viewController {
+            carousel.addChildViewController(vc)
+        }
+        delgate?.carousel?(carousel, willInstallCell: cell.index)
     }
-    func carouselWillUninstallCell(index:Int) {
+    func carouselWillUninstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, willUninstallCell: index)
+        if let c = cell as? CarouselCellForViewController, vc = c.viewController {
+            vc.removeFromParentViewController()
+        }
+        delgate?.carousel?(carousel, willUninstallCell: cell.index)
     }
-    func carouselDidInstallCell(index:Int) {
+    func carouselDidInstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, didInstallCell: index)
+        
+        delgate?.carousel?(carousel, didInstallCell: cell.index)
+        
+        if let c = cell as? CarouselCellForViewController, vc = c.viewController {
+            vc.didMoveToParentViewController(carousel)
+        }
     }
-    func carouselDidUninstallCell(index:Int) {
+    func carouselDidUninstallCell(cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
-        delgate?.carousel?(carousel, didUninstallCell: index)
+        
+        delgate?.carousel?(carousel, didUninstallCell: cell.index)
+        
+        if let c = cell as? CarouselCellForViewController, vc = c.viewController {
+            vc.didMoveToParentViewController(nil)
+        }
     }
     
     // progresss
@@ -1790,7 +1808,7 @@ public class CarouselViewController: UIViewController {
         _dataSource.carousel = self
         _delegate.carousel = self
         
-        let carouselView = CarouselScrollView.init(frame: UIScreen.mainScreen().bounds)
+        let carouselView = CarouselScrollViewForViewController.init(frame: UIScreen.mainScreen().bounds)
         carouselView.dataSource = _dataSource
         carouselView.carouselDelegate = _delegate
         view = carouselView
