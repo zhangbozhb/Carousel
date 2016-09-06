@@ -920,6 +920,7 @@ extension CarouselScrollView: UIScrollViewDelegate {
         guard !_ignoreScrollEvent else {
             // update visible cells
             updateVisibleCell()
+            _ignoreScrollEvent = false
             return
         }
         
@@ -1446,7 +1447,7 @@ public class CarouselView:UIView {
     }
     
     /// data source of cell views
-    weak var dataSource:CarouselViewDataSourse? {
+    public weak var dataSource:CarouselViewDataSourse? {
         didSet {
             if _dataSource.dataSource !== dataSource {
                 _dataSource.dataSource = dataSource
@@ -1454,7 +1455,7 @@ public class CarouselView:UIView {
         }
     }
     /// scroll delegate
-    weak var delegate:CarouselViewDelegate? {
+    public weak var delegate:CarouselViewDelegate? {
         didSet {
             if _delegate.delgate !== delegate {
                 _delegate.delgate = delegate
@@ -1777,7 +1778,7 @@ public class CarouselViewController: UIViewController {
     }
     
     /// data source of cell views
-    weak var dataSource:CarouselViewControllerDataSourse? {
+    public weak var dataSource:CarouselViewControllerDataSourse? {
         didSet {
             if _dataSource.dataSource !== dataSource {
                 _dataSource.dataSource = dataSource
@@ -1785,7 +1786,7 @@ public class CarouselViewController: UIViewController {
         }
     }
     /// scroll delegate
-    weak var delegate:CarouselViewControllerDelegate? {
+    public weak var delegate:CarouselViewControllerDelegate? {
         didSet {
             if _delegate.delgate !== delegate {
                 _delegate.delgate = delegate
