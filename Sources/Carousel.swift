@@ -81,12 +81,6 @@ public class CarouselCell {
         self.rawIndex = rawIndex
     }
     
-    init(rawIndex:Int, count:Int, view:UIView) {
-        self.rawIndex = rawIndex
-        self.count = count
-        self.view = view
-    }
-    
     init(rawIndex:Int, count:Int, view:UIView, delegate:CarouselDelegate?) {
         self.rawIndex = rawIndex
         self.count = count
@@ -254,8 +248,9 @@ public enum CarouselType {
 
 public enum CarouselPagingType {
     case None   // not paging
-    case Cell   // paging by cell
-    case Page   // paging by page
+    case Cell   // paging by cell, scroll no limit
+    case CellLimit   // paging by cell, but scroll one cell
+    case Scoll  // UIScroll paging
 }
 
 public extension CarouselScrollView {
@@ -266,6 +261,14 @@ public extension CarouselScrollView {
     /// cell heigt: greater than 1
     public var cellHeight:CGFloat {
         return _cellSize.height
+    }
+    /// page witdh: greater than 1
+    public var pageWidth:CGFloat {
+        return max(frame.width, 1)
+    }
+    /// page heigt: greater than 1
+    public var pageHeight:CGFloat {
+        return max(frame.height, 1)
     }
 }
 
@@ -278,7 +281,6 @@ public class CarouselScrollView: UIScrollView {
                 cellPerPage = 1
                 return
             }
-            updatePagingEnabled()
             if cellPerPage != oldValue {
                 setNeedsLayout()
             }
@@ -331,14 +333,11 @@ public class CarouselScrollView: UIScrollView {
     /// cell layout in Loop or Linear
     public var type = CarouselType.Linear
     /// support paging
-    public var pagingRequired = true {
+    public var pagingType = CarouselPagingType.None {
         didSet {
-            updatePagingEnabled()
+            pagingEnabled = (pagingType == .Scoll && cellPerPage == 1)
         }
     }
-    /// if true ignore pagingEnabled and use pagingRequired instead, default is true
-    public var ignorePagingEnabled = true
-
     
     /// data source of cell views
     weak var dataSource:CarouselDataSourse?
@@ -378,31 +377,13 @@ public class CarouselScrollView: UIScrollView {
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false
         pagingEnabled = false
+        delegate = self
         _reusableCells.maxSize = reusableCellSize
 
         _preSize = frame.size
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationDidBecomeActiveNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(self.handleNotifications(_:)), name: UIApplicationWillResignActiveNotification, object: nil)
-    }
-
-    /**
-     update pagingEnabled pagingRequired to avoid both true
-     */
-    private func updatePagingEnabled() {
-        guard pagingEnabled && pagingRequired else {
-            return
-        }
-        
-        if cellPerPage > 1 {
-            pagingEnabled = false
-        } else {
-            if ignorePagingEnabled {
-                pagingEnabled = false
-            } else {
-                pagingRequired = false
-            }
-        }
     }
     
     final func handleNotifications(notification:NSNotification) {
@@ -595,10 +576,12 @@ extension CarouselScrollView {
     private func updateContentSizeLinear() {
         var targetSize = frame.size
         if let count = numberOfView() where count > 0 {
-            if direction == .Horizontal {
-                targetSize = CGSizeMake(CGFloat(count) * cellWidth, frame.height)
-            } else {
-                targetSize = CGSizeMake(cellWidth, CGFloat(count) * cellHeight)
+            let count1 = cellPerPage > 0 ? ((count + cellPerPage - 1) / cellPerPage) * cellPerPage : count
+            switch direction {
+            case .Horizontal:
+                targetSize = CGSizeMake(CGFloat(count1) * cellWidth, frame.height)
+            case .Vertical:
+                targetSize = CGSizeMake(cellWidth, CGFloat(count1) * cellHeight)
             }
         }
         if !CGSizeEqualToSize(targetSize, contentSize) {
@@ -876,18 +859,74 @@ extension CarouselScrollView {
 extension CarouselScrollView: UIScrollViewDelegate {
     // this deleate handle paging
     public func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        guard pagingRequired else {
-            return
+        func caculateTargetPositionLimit(velocity: CGPoint, targetContentOffset: CGPoint) -> CGPoint {
+            switch direction {
+            case .Horizontal:
+                var targetX:CGFloat = 0
+                if velocity.x > 0 {
+                    let offset = floor(contentOffset.x / cellWidth) * cellWidth
+                    let offsetThreshold = offset + cellWidth / 4
+                    if contentOffset.x > offsetThreshold || targetContentOffset.x > offsetThreshold {
+                        targetX = offset + cellWidth
+                    }
+                } else if velocity.x < 0 {
+                    let offset = ceil(contentOffset.x / cellWidth) * cellWidth
+                    let offsetThreshold = offset - cellWidth / 4
+                    if contentOffset.x < offsetThreshold || targetContentOffset.x < offsetThreshold {
+                        targetX = offset - cellWidth
+                    }
+                } else {
+                    targetX = round(contentOffset.x / cellWidth) * cellWidth
+                }
+                targetX = max(min(targetX, contentSize.width - pageWidth), 0)
+                return CGPoint(x: targetX, y: targetContentOffset.y)
+            case .Vertical:
+                var targetY:CGFloat = 0
+                if velocity.y > 0 {
+                    let offset = floor(contentOffset.y / cellHeight) * cellHeight
+                    let offsetThreshold = offset + cellHeight / 4
+                    if contentOffset.y > offsetThreshold || targetContentOffset.y > offsetThreshold {
+                        targetY = offset + cellHeight
+                    }
+                } else if velocity.y < 0 {
+                    let offset = ceil(contentOffset.y / cellHeight) * cellHeight
+                    let offsetThreshold = offset - cellHeight / 4
+                    if contentOffset.y < offsetThreshold || targetContentOffset.y < offsetThreshold {
+                        targetY = offset - cellHeight
+                    }
+                } else {
+                    targetY = round(contentOffset.y / cellHeight) * cellHeight
+                }
+                targetY = max(min(targetY, contentSize.width - pageWidth), 0)
+                return CGPoint(x: targetContentOffset.x, y: targetY)
+            }
         }
-        switch direction {
-        case .Horizontal:
-            var targetX = round(targetContentOffset.memory.x / cellWidth) * cellWidth
-            targetX = max(min(targetX, contentSize.width), 0)
-            targetContentOffset.memory.x = targetX
-        case .Vertical:
-            var targetY = round(targetContentOffset.memory.y / cellHeight) * cellHeight
-            targetY = max(min(targetY, contentSize.height), 0)
-            targetContentOffset.memory.y = targetY
+        
+        
+        switch pagingType {
+        case .None:
+            return
+        case .Cell:
+            switch direction {
+            case .Horizontal:
+                var targetX = round(targetContentOffset.memory.x / cellWidth) * cellWidth
+                targetX = max(min(targetX, contentSize.width - pageWidth), 0)
+                targetContentOffset.memory.x = targetX
+            case .Vertical:
+                var targetY = round(targetContentOffset.memory.y / cellHeight) * cellHeight
+                targetY = max(min(targetY, contentSize.height - pageHeight), 0)
+                targetContentOffset.memory.y = targetY
+            }
+        case .CellLimit:
+            let target = caculateTargetPositionLimit(velocity, targetContentOffset: targetContentOffset.memory)
+            targetContentOffset.memory.x = target.x
+            targetContentOffset.memory.y = target.y
+        case .Scoll where cellPerPage != 0:
+            let target = caculateTargetPositionLimit(velocity, targetContentOffset: targetContentOffset.memory)
+            targetContentOffset.memory.x = target.x
+            targetContentOffset.memory.y = target.y
+        default:
+            break
         }
     }
     // handle did scroll
@@ -1421,6 +1460,12 @@ public class CarouselView:UIView {
             _carousel.type = type
         }
     }
+    /// support paging
+    public var pagingType = CarouselPagingType.None {
+        didSet {
+            _carousel.pagingType = pagingType
+        }
+    }
     
     /// data source of cell views
     weak var dataSource:CarouselViewDataSourse? {
@@ -1704,6 +1749,12 @@ public class CarouselViewController: UIViewController {
     public var type = CarouselType.Linear {
         didSet {
             _carousel.type = type
+        }
+    }
+    /// support paging
+    public var pagingType = CarouselPagingType.None {
+        didSet {
+            _carousel.pagingType = pagingType
         }
     }
     
