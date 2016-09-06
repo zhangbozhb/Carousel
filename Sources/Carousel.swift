@@ -28,6 +28,9 @@
 
 import UIKit
 
+private let c_screenWidth = UIScreen.mainScreen().bounds.width
+private let c_screenHeight = UIScreen.mainScreen().bounds.height
+
 protocol CarouselDataSourse:class {
     func numberOfCell() -> Int
     func cellForIndex(index:Int) -> UIView?
@@ -845,50 +848,6 @@ extension CarouselScrollView {
 extension CarouselScrollView: UIScrollViewDelegate {
     // this deleate handle paging
     public func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        func caculateTargetPositionLimit(velocity: CGPoint, targetContentOffset: CGPoint) -> CGPoint {
-            switch direction {
-            case .Horizontal:
-                var targetX:CGFloat = 0
-                if velocity.x > 0 {
-                    let offset = floor(contentOffset.x / cellWidth) * cellWidth
-                    let offsetThreshold = offset + cellWidth / 4
-                    if contentOffset.x > offsetThreshold || targetContentOffset.x > offsetThreshold {
-                        targetX = offset + cellWidth
-                    }
-                } else if velocity.x < 0 {
-                    let offset = ceil(contentOffset.x / cellWidth) * cellWidth
-                    let offsetThreshold = offset - cellWidth / 4
-                    if contentOffset.x < offsetThreshold || targetContentOffset.x < offsetThreshold {
-                        targetX = offset - cellWidth
-                    }
-                } else {
-                    targetX = round(contentOffset.x / cellWidth) * cellWidth
-                }
-                targetX = max(min(targetX, contentSize.width - pageWidth), 0)
-                return CGPoint(x: targetX, y: targetContentOffset.y)
-            case .Vertical:
-                var targetY:CGFloat = 0
-                if velocity.y > 0 {
-                    let offset = floor(contentOffset.y / cellHeight) * cellHeight
-                    let offsetThreshold = offset + cellHeight / 4
-                    if contentOffset.y > offsetThreshold || targetContentOffset.y > offsetThreshold {
-                        targetY = offset + cellHeight
-                    }
-                } else if velocity.y < 0 {
-                    let offset = ceil(contentOffset.y / cellHeight) * cellHeight
-                    let offsetThreshold = offset - cellHeight / 4
-                    if contentOffset.y < offsetThreshold || targetContentOffset.y < offsetThreshold {
-                        targetY = offset - cellHeight
-                    }
-                } else {
-                    targetY = round(contentOffset.y / cellHeight) * cellHeight
-                }
-                targetY = max(min(targetY, contentSize.width - pageWidth), 0)
-                return CGPoint(x: targetContentOffset.x, y: targetY)
-            }
-        }
-        
-        
         switch pagingType {
         case .None:
             return
@@ -903,14 +862,14 @@ extension CarouselScrollView: UIScrollViewDelegate {
                 targetY = max(min(targetY, contentSize.height - pageHeight), 0)
                 targetContentOffset.memory.y = targetY
             }
-        case .CellLimit:
-            let target = caculateTargetPositionLimit(velocity, targetContentOffset: targetContentOffset.memory)
-            targetContentOffset.memory.x = target.x
-            targetContentOffset.memory.y = target.y
-        case .Scoll where cellPerPage != 0:
-            let target = caculateTargetPositionLimit(velocity, targetContentOffset: targetContentOffset.memory)
-            targetContentOffset.memory.x = target.x
-            targetContentOffset.memory.y = target.y
+        case .CellLimit, .Scoll where cellPerPage != 0:
+            // handle paging in scrollViewDidEndDragging
+            switch direction {
+            case .Horizontal:
+                targetContentOffset.memory.x = contentOffset.x
+            case .Vertical:
+                targetContentOffset.memory.y = contentOffset.y
+            }
         default:
             break
         }
@@ -959,10 +918,48 @@ extension CarouselScrollView: UIScrollViewDelegate {
         carouselDelegate?.carouselWillBeginDragging()
     }
     
+    // handle paging and auto scroll
     public func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         resumeAutoScroll()
         
         carouselDelegate?.carouselDidEndDraggingWillDecelerate(decelerate)
+        
+        // paging
+        switch pagingType {
+        case .CellLimit, .Scoll where cellPerPage != 0:
+            switch direction {
+            case .Horizontal:
+                var target = round(contentOffset.x / cellWidth) * cellWidth
+                let cf = type == .Linear ? frameLinear(_curFirstCellIndex) : frameLoop(_curFirstCellIndex)
+                let offset = contentOffset.x - cf.minX
+                let offsetThreshold = min(cellWidth / 3, c_screenWidth/5)
+                if offset > offsetThreshold {
+                    target = ceil(contentOffset.x / cellWidth) * cellWidth
+                } else if offset < -offsetThreshold {
+                    target = floor(contentOffset.x / cellWidth) * cellWidth
+                }
+                let targetOffset = abs(target - offset)
+                if targetOffset > 0 {
+                   setContentOffset(CGPoint(x: target, y: contentOffset.y), animated: targetOffset > 10)
+                }
+            case .Vertical:
+                var target = round(contentOffset.y / cellHeight) * cellHeight
+                let cf = type == .Linear ? frameLinear(_curFirstCellIndex) : frameLoop(_curFirstCellIndex)
+                let offset = contentOffset.y - cf.minY
+                let offsetThreshold = min(cellHeight / 3, c_screenHeight/5)
+                if offset > offsetThreshold {
+                    target = ceil(contentOffset.y / cellHeight) * cellHeight
+                } else if offset < -offsetThreshold {
+                    target = floor(contentOffset.y / cellHeight) * cellHeight
+                }
+                let targetOffset = abs(target - offset)
+                if targetOffset > 0 {
+                    setContentOffset(CGPoint(x: target, y: contentOffset.y), animated: targetOffset > 10)
+                }
+            }
+        default:
+            break
+        }
     }
 }
 
