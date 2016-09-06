@@ -5,7 +5,7 @@
 Pod::Spec.new do |s|
 
     s.name         = "CarouselSwift"
-    s.version      = "0.3"
+    s.version      = "0.4"
     s.summary      = "An reusable carousel support both Horizontal and Vertical direction, and multi page as well"
 
     s.description  = <<-DESC
