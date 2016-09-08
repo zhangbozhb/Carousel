@@ -862,7 +862,7 @@ extension CarouselScrollView: UIScrollViewDelegate {
                 targetY = max(min(targetY, contentSize.height - pageHeight), 0)
                 targetContentOffset.memory.y = targetY
             }
-        case .CellLimit, .Scoll where cellPerPage != 0:
+        case .CellLimit, .Scoll where cellPerPage != 1:
             // handle paging in scrollViewDidEndDragging
             switch direction {
             case .Horizontal:
@@ -926,7 +926,7 @@ extension CarouselScrollView: UIScrollViewDelegate {
         
         // paging
         switch pagingType {
-        case .CellLimit, .Scoll where cellPerPage != 0:
+        case .CellLimit, .Scoll where cellPerPage != 1:
             switch direction {
             case .Horizontal:
                 var target = round(contentOffset.x / cellWidth) * cellWidth
