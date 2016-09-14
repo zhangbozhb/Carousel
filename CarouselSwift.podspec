@@ -1,11 +1,11 @@
 #
 #  pod spec lint CarouselSwift.podspec --allow-warnings
-#  pod trunk push CarouselSwift.podspec
+#  pod trunk push CarouselSwift.podspec --allow-warnings
 
 Pod::Spec.new do |s|
 
     s.name         = "CarouselSwift"
-    s.version      = "0.5"
+    s.version      = "1.0"
     s.summary      = "An reusable carousel support both Horizontal and Vertical direction, and multi page as well"
 
     s.description  = <<-DESC

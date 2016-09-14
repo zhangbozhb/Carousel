@@ -72,14 +72,14 @@ CarouselSwift implement with UIScrollView
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
-carousel.type = .Loop   // set cell loop or linear
+carousel.type = .loop   // set cell loop or linear
 carousel.dataSource = self  // set data source cell view
 carousel.reload()   // load datas
 
 carousel.autoScroll(2, increase: true)  // set auto scroll
 carousel.delegate = self    // set scroll delegate
 
-carousel.scrollToCell(1) // scroll to specify cell
+carousel.scrollTo(cell: 1) // scroll to specify cell
 carousel.cellPerPage = 3 // number view show in one page
 
 
@@ -92,14 +92,14 @@ func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView?
 ### CarouselViewController
 ```Swift
 let carousel = CarouselViewController()
-carousel.type = .Loop   // set cell loop or linear
+carousel.type = .loop   // set cell loop or linear
 carousel.dataSource = self  // set data source cell view
 carousel.reload()   // load datas
 
 carousel.autoScroll(2, increase: true)  // set auto scroll
 carousel.delegate = self    // set scroll delegate
 
-carousel.scrollToCell(1) // scroll to specify cell
+carousel.scrollTo(cell: 1) // scroll to specify cell
 carousel.cellPerPage = 3 // number view show in one page
 
 
@@ -119,6 +119,9 @@ use_frameworks!
 
 pod 'CarouselSwift'
 ```
+
+If you use swift 2, use pod 'CarouselSwift' , '~> 0.1'
+
 
 # CarouselSwift 介绍
 
@@ -187,14 +190,14 @@ CarouselSwift 是采用 UIScrollView 来实现的
 ```Swift
 let carousel = CarouselView.init(frame: view.bounds)
 view.addSubview(carousel)
-carousel.type = .Loop   // 设置内容 cell 是否循环
+carousel.type = .loop   // 设置内容 cell 是否循环
 carousel.dataSource = self  // 设置数据源 cell view
 carousel.reload()   // 加载数据
 
 carousel.autoScroll(2, increase: true)  // 设置自动滚动
 carousel.delegate = self    // 设置滚动 delegate, 获取滚动进度
 
-carousel.scrollToCell(1) // 滚动到指定 cell
+carousel.scrollTo(cell: 1) // 滚动到指定 cell
 carousel.cellPerPage = 3 // 单页可以显示 view 数量
 
 
@@ -207,14 +210,14 @@ func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView? // index
 ### CarouselViewController
 ```Swift
 let carousel = CarouselViewController()
-carousel.carouselView.type = .Loop   // 设置内容 cell 是否循环
+carousel.carouselView.type = .loop   // 设置内容 cell 是否循环
 carousel.dataSource = self  // 设置数据源 cell view
 carousel.reload()   // 加载数据
 
 carousel.autoScroll(2, increase: true)  // 设置自动滚动
 carousel.delegate = self    // 设置滚动 delegate, 获取滚动进度
 
-carousel.scrollToCell(1) // 滚动到指定 cell
+carousel.scrollTo(cell: 1) // 滚动到指定 cell
 carousel.cellPerPage = 3 // 单页可以显示 view 数量
 
 

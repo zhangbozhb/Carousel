@@ -28,10 +28,10 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
 
 //        carousel = CarouselView.init(frame: view.bounds)
 //        view.addSubview(carousel)
-        carousel.type = .Loop
+        carousel.type = .loop
         carousel.dataSource = self
         carousel.delegate = self
-        carousel.pagingType = .CellLimit
+        carousel.pagingType = .cellLimit
         carousel.reload()
 
         carousel.autoScroll(2, increase: true)
@@ -42,47 +42,47 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         // Dispose of any resources that can be recreated.
     }
     
-    func numberOfView(carousel: CarouselView) -> Int {
+    func numberOfView(_ carousel: CarouselView) -> Int {
         return Int(slidePageCount.value)
     }
     
-    func carousel(carousel:CarouselView, viewForIndex index:Int) -> UIView? {
+    func carousel(_ carousel:CarouselView, viewForIndex index:Int) -> UIView? {
         
         let padding:CGFloat = 20
         let v = UIView()
-        v.backgroundColor = UIColor.orangeColor()
+        v.backgroundColor = UIColor.orange
         
         
         let label = UILabel()
-        label.textAlignment = .Center
+        label.textAlignment = .center
         label.text = "P \(index)"
-        label.backgroundColor = UIColor.purpleColor()
+        label.backgroundColor = UIColor.purple
         v.addSubview(label)
         
         label.translatesAutoresizingMaskIntoConstraints = false
-        let w = label.heightAnchor.constraintEqualToAnchor(v.heightAnchor, multiplier: 1, constant: -padding * 2)
-        let h = label.widthAnchor.constraintEqualToAnchor(v.widthAnchor, multiplier: 1, constant: -padding * 2)
-        let cx = label.centerXAnchor.constraintEqualToAnchor(v.centerXAnchor)
-        let cy = label.centerYAnchor.constraintEqualToAnchor(v.centerYAnchor)
+        let w = label.heightAnchor.constraint(equalTo: v.heightAnchor, multiplier: 1, constant: -padding * 2)
+        let h = label.widthAnchor.constraint(equalTo: v.widthAnchor, multiplier: 1, constant: -padding * 2)
+        let cx = label.centerXAnchor.constraint(equalTo: v.centerXAnchor)
+        let cy = label.centerYAnchor.constraint(equalTo: v.centerYAnchor)
         
-        NSLayoutConstraint.activateConstraints([w, h, cx, cy])
-        v.layer.borderColor = UIColor.redColor().CGColor
+        NSLayoutConstraint.activate([w, h, cx, cy])
+        v.layer.borderColor = UIColor.red.cgColor
         v.layer.borderWidth = 1
         return (index % 6 == 0 && index != 0) ? nil : v
     }
     
-    @IBAction func changeDirection(sender: UISwitch) {
-        carousel.direction =  sender.on ? .Horizontal : .Vertical
+    @IBAction func changeDirection(_ sender: UISwitch) {
+        carousel.direction =  sender.isOn ? .horizontal : .vertical
         carousel.reload()
     }
     
-    @IBAction func changeType(sender: UISwitch) {
-        carousel.type =  sender.on ? .Loop : .Linear
+    @IBAction func changeType(_ sender: UISwitch) {
+        carousel.type =  sender.isOn ? .loop : .linear
         carousel.reload()
     }
     
     var preDouble:Double = -1
-    @IBAction func changePage(sender: UIStepper) {
+    @IBAction func changePage(_ sender: UIStepper) {
         if preDouble < sender.value {
             carousel.nextCell(true)
         } else {
@@ -91,20 +91,20 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
         preDouble = sender.value
     }
     
-    @IBAction func changAutoScroll(sender: UISwitch) {
-        if sender.on {
+    @IBAction func changAutoScroll(_ sender: UISwitch) {
+        if sender.isOn {
             carousel.autoScroll(3, increase: true)
         } else {
             carousel.stopAutoScroll()
         }
     }
     
-    @IBAction func changePageCount(sender: UISlider) {
+    @IBAction func changePageCount(_ sender: UISlider) {
         pageCountLabel.text = "Total Cell: \(Int(sender.value))"
         carousel.reload()
     }
     
-    @IBAction func changeVisibelPageCount(sender: UISlider) {
+    @IBAction func changeVisibelPageCount(_ sender: UISlider) {
         visiblePageCount.text = "Cell PerPage: \(Int(sender.value))"
         carousel.cellPerPage = Int(sender.value)
         carousel.reload()
@@ -112,11 +112,11 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
     
     
     // CarouselViewDelegate
-    func carousel(carousel: CarouselView, didScrollFrom: Int, to: Int) {
+    func carousel(_ carousel: CarouselView, didScrollFrom: Int, to: Int) {
         print("CarouselView didScrollFrom \(didScrollFrom) \(to)")
     }
     
-    func carousel(carousel: CarouselView, scrollFrom: Int, to: Int, progress: CGFloat) {
+    func carousel(_ carousel: CarouselView, scrollFrom: Int, to: Int, progress: CGFloat) {
         print("CarouselView scrollFrom \(scrollFrom) \(to) \(progress)")
     }
 }
