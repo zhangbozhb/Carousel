@@ -207,13 +207,19 @@
 				TargetAttributes = {
 					EDCB01C21D47051200799A45 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = HNF3479B3Z;
+						LastSwiftMigration = 0800;
 					};
 					EDCB01D61D47051200799A45 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = HNF3479B3Z;
+						LastSwiftMigration = 0800;
 						TestTargetID = EDCB01C21D47051200799A45;
 					};
 					EDCB01E11D47051200799A45 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = HNF3479B3Z;
+						LastSwiftMigration = 0800;
 						TestTargetID = EDCB01C21D47051200799A45;
 					};
 				};
@@ -417,10 +423,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = Carousel/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.Carousel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 			};
 			name = Debug;
 		};
@@ -428,10 +436,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = Carousel/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.Carousel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 			};
 			name = Release;
 		};
@@ -439,10 +449,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = CarouselTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Carousel.app/Carousel";
 			};
 			name = Debug;
@@ -451,10 +463,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = CarouselTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Carousel.app/Carousel";
 			};
 			name = Release;
@@ -462,10 +476,12 @@
 		EDCB01F21D47051200799A45 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = CarouselUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_TARGET_NAME = Carousel;
 			};
 			name = Debug;
@@ -473,10 +489,12 @@
 		EDCB01F31D47051200799A45 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = HNF3479B3Z;
 				INFOPLIST_FILE = CarouselUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_TARGET_NAME = Carousel;
 			};
 			name = Release;
