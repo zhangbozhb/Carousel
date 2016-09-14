@@ -38,14 +38,14 @@ protocol CarouselDataSourse:class {
 
 protocol CarouselDelegate:class {
     // install uninstall
-    func carouselWillInstallCell(cell:CarouselCell)
-    func carouselWillUninstallCell(cell:CarouselCell)
-    func carouselDidInstallCell(cell:CarouselCell)
-    func carouselDidUninstallCell(cell:CarouselCell)
+    func carouselWillInstall(cell cell:CarouselCell)
+    func carouselWillUninstall(cell cell:CarouselCell)
+    func carouselDidInstall(cell cell:CarouselCell)
+    func carouselDidUninstall(cell cell:CarouselCell)
     
     // progresss
-    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat)
-    func carouselDidScrollFrom(from:Int, to:Int)
+    func carouselScroll(from from:Int, to:Int, progress:CGFloat)
+    func carouselDidScroll(from from:Int, to:Int)
     
     
     func carouselDidScroll()
@@ -129,19 +129,19 @@ public class CarouselCell {
     }
     
     func willUninstall() {
-        delegate?.carouselWillUninstallCell(self)
+        delegate?.carouselWillUninstall(cell: self)
     }
     
     func didUninstall() {
-        delegate?.carouselDidUninstallCell(self)
+        delegate?.carouselDidUninstall(cell: self)
     }
     
     func willInstall() {
-        delegate?.carouselWillInstallCell(self)
+        delegate?.carouselWillInstall(cell: self)
     }
     
     func didInstall() {
-        delegate?.carouselDidInstallCell(self)
+        delegate?.carouselDidInstall(cell: self)
     }
 }
 
@@ -184,7 +184,7 @@ class CarouselPageCache {
         }
     }
     
-    func cacheCell(cell:Int, count:Int, removeFromCache:Bool = true) -> CarouselCell? {
+    func cache(cell cell:Int, count:Int, removeFromCache:Bool = true) -> CarouselCell? {
         guard count > 0 else {
             return nil
         }
@@ -517,12 +517,12 @@ public class CarouselScrollView: UIScrollView {
         }
     }
     
-    private func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
-        carouselDelegate?.carouselScrollFrom(from, to: to, progress: progress)
+    private func carouselScroll(from from:Int, to:Int, progress:CGFloat) {
+        carouselDelegate?.carouselScroll(from: from, to: to, progress: progress)
     }
     
-    private func carouselDidScrollFrom(from:Int, to:Int) {
-        carouselDelegate?.carouselDidScrollFrom(from, to: to)
+    private func carouselDidScroll(from from:Int, to:Int) {
+        carouselDelegate?.carouselDidScroll(from: from, to: to)
     }
 }
 
@@ -537,7 +537,7 @@ extension CarouselScrollView {
         case .Horizontal:
             if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLinear(_curFirstCellIndex).maxX || contentOffset.x < frameLinear(_curFirstCellIndex - 1).minX {
                 if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
+                    carouselDidScroll(from: _curFirstCellIndex, to: first.rawIndex)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -545,7 +545,7 @@ extension CarouselScrollView {
         case .Vertical:
             if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLinear(_curFirstCellIndex).maxY || contentOffset.y < frameLinear(_curFirstCellIndex - 1).minY {
                 if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScrollFrom(_curFirstCellIndex, to: first.rawIndex)
+                    carouselDidScroll(from: _curFirstCellIndex, to: first.rawIndex)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -555,10 +555,10 @@ extension CarouselScrollView {
         switch direction {
         case .Horizontal:
             let progress = contentOffset.x / cellWidth - CGFloat(_curFirstCellIndex)
-            carouselScrollFrom(_curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1 , progress: progress)
+            carouselScroll(from: _curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1 , progress: progress)
         case .Vertical:
             let progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex)
-            carouselScrollFrom(_curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, progress: progress)
+            carouselScroll(from: _curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, progress: progress)
         }
     }
     
@@ -588,7 +588,7 @@ extension CarouselScrollView {
     }
     
     private func setupCellLinear(rawIndex:Int, count:Int, tail:Bool = true) -> CarouselCell {
-        let cell = _reusableCells.cacheCell(rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
+        let cell = _reusableCells.cache(cell: rawIndex, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(rawIndex, count: count, rawIndex: rawIndex)
         if tail {
             _cells.append(cell)
         } else {
@@ -676,7 +676,7 @@ extension CarouselScrollView {
             if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLoop(_curFirstCellIndex).maxX || contentOffset.x < frameLoop(_curFirstCellIndex - 1).minX {
                 if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
                     let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-                    carouselDidScrollFrom(_curFirstCellIndex - offset, to: first.rawIndex - offset)
+                    carouselDidScroll(from: _curFirstCellIndex - offset, to: first.rawIndex - offset)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -685,7 +685,7 @@ extension CarouselScrollView {
             if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLoop(_curFirstCellIndex).maxY || contentOffset.y < frameLoop(_curFirstCellIndex - 1).minY {
                 if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
                     let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-                    carouselDidScrollFrom(_curFirstCellIndex - offset, to: first.rawIndex - offset)
+                    carouselDidScroll(from: _curFirstCellIndex - offset, to: first.rawIndex - offset)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -700,7 +700,7 @@ extension CarouselScrollView {
             progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex + _offsetCellIndex)
         }
         let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-        carouselScrollFrom(_curFirstCellIndex - offset, to: progress > 0 ? _curFirstCellIndex + 1 - offset: _curFirstCellIndex - 1 - offset, progress: progress)
+        carouselScroll(from: _curFirstCellIndex - offset, to: progress > 0 ? _curFirstCellIndex + 1 - offset: _curFirstCellIndex - 1 - offset, progress: progress)
     }
     
     private func updateContentOffsetLoop() {
@@ -771,7 +771,7 @@ extension CarouselScrollView {
     
     private func setupCellLoop(rawIndex:Int, count:Int, tail:Bool) -> CarouselCell {
         let index = formatedInex(rawIndex, ofCount: count)
-        let cell = _reusableCells.cacheCell(index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
+        let cell = _reusableCells.cache(cell: index, count: count, removeFromCache: true)?.reuse(rawIndex) ?? fetchCell(index, count: count, rawIndex: rawIndex)
         if tail {
             _cells.append(cell)
         } else {
@@ -1321,25 +1321,25 @@ class CarouselDelegateForView:CarouselDelegate {
     weak var carousel:CarouselView?
     weak var delgate:CarouselViewDelegate?
     
-    func carouselWillInstallCell(cell:CarouselCell) {
+    func carouselWillInstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
         delgate?.carousel?(carousel, willInstallCell: cell.index)
     }
-    func carouselWillUninstallCell(cell:CarouselCell) {
+    func carouselWillUninstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
         delgate?.carousel?(carousel, willUninstallCell: cell.index)
     }
-    func carouselDidInstallCell(cell:CarouselCell) {
+    func carouselDidInstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
         delgate?.carousel?(carousel, didInstallCell: cell.index)
     }
-    func carouselDidUninstallCell(cell:CarouselCell) {
+    func carouselDidUninstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
@@ -1347,13 +1347,13 @@ class CarouselDelegateForView:CarouselDelegate {
     }
     
     // progresss
-    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
+    func carouselScroll(from from:Int, to:Int, progress:CGFloat) {
         guard let carousel = carousel else {
             return
         }
         delgate?.carousel?(carousel, scrollFrom: from, to: to, progress: progress)
     }
-    func carouselDidScrollFrom(from:Int, to:Int) {
+    func carouselDidScroll(from from:Int, to:Int) {
         guard let carousel = carousel else {
             return
         }
@@ -1639,7 +1639,7 @@ class CarouselDelegateForViewController:CarouselDelegate {
     weak var carousel:CarouselViewController?
     weak var delgate:CarouselViewControllerDelegate?
     
-    func carouselWillInstallCell(cell:CarouselCell) {
+    func carouselWillInstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
@@ -1648,7 +1648,7 @@ class CarouselDelegateForViewController:CarouselDelegate {
         }
         delgate?.carousel?(carousel, willInstallCell: cell.index)
     }
-    func carouselWillUninstallCell(cell:CarouselCell) {
+    func carouselWillUninstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
@@ -1657,7 +1657,7 @@ class CarouselDelegateForViewController:CarouselDelegate {
         }
         delgate?.carousel?(carousel, willUninstallCell: cell.index)
     }
-    func carouselDidInstallCell(cell:CarouselCell) {
+    func carouselDidInstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
@@ -1668,7 +1668,7 @@ class CarouselDelegateForViewController:CarouselDelegate {
             vc.didMoveToParentViewController(carousel)
         }
     }
-    func carouselDidUninstallCell(cell:CarouselCell) {
+    func carouselDidUninstall(cell cell:CarouselCell) {
         guard let carousel = carousel else {
             return
         }
@@ -1681,13 +1681,13 @@ class CarouselDelegateForViewController:CarouselDelegate {
     }
     
     // progresss
-    func carouselScrollFrom(from:Int, to:Int, progress:CGFloat) {
+    func carouselScroll(from from:Int, to:Int, progress:CGFloat) {
         guard let carousel = carousel else {
             return
         }
         delgate?.carousel?(carousel, scrollFrom: from, to: to, progress: progress)
     }
-    func carouselDidScrollFrom(from:Int, to:Int) {
+    func carouselDidScroll(from from:Int, to:Int) {
         guard let carousel = carousel else {
             return
         }
