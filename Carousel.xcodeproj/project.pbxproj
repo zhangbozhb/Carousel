@@ -13,27 +13,8 @@
 		EDCB01CC1D47051200799A45 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDCB01CA1D47051200799A45 /* Main.storyboard */; };
 		EDCB01CE1D47051200799A45 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EDCB01CD1D47051200799A45 /* Assets.xcassets */; };
 		EDCB01D11D47051200799A45 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDCB01CF1D47051200799A45 /* LaunchScreen.storyboard */; };
-		EDCB01DC1D47051200799A45 /* CarouselTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCB01DB1D47051200799A45 /* CarouselTests.swift */; };
-		EDCB01E71D47051200799A45 /* CarouselUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCB01E61D47051200799A45 /* CarouselUITests.swift */; };
 		EDF0CABC1D629411003F6575 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF0CABB1D629411003F6575 /* Carousel.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		EDCB01D81D47051200799A45 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = EDCB01BB1D47051200799A45 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EDCB01C21D47051200799A45;
-			remoteInfo = Carousel;
-		};
-		EDCB01E31D47051200799A45 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = EDCB01BB1D47051200799A45 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EDCB01C21D47051200799A45;
-			remoteInfo = Carousel;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		ED17856F1D65B24C00EADAEC /* CarouselViewControllerDemo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CarouselViewControllerDemo.swift; sourceTree = "<group>"; };
@@ -44,10 +25,8 @@
 		EDCB01CD1D47051200799A45 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EDCB01D01D47051200799A45 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		EDCB01D21D47051200799A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EDCB01D71D47051200799A45 /* CarouselTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CarouselTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCB01DB1D47051200799A45 /* CarouselTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselTests.swift; sourceTree = "<group>"; };
 		EDCB01DD1D47051200799A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EDCB01E21D47051200799A45 /* CarouselUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CarouselUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDCB01E61D47051200799A45 /* CarouselUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselUITests.swift; sourceTree = "<group>"; };
 		EDCB01E81D47051200799A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EDF0CABB1D629411003F6575 /* Carousel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
@@ -55,20 +34,6 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		EDCB01C01D47051200799A45 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EDCB01D41D47051200799A45 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EDCB01DF1D47051200799A45 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -93,8 +58,6 @@
 			isa = PBXGroup;
 			children = (
 				EDCB01C31D47051200799A45 /* Carousel.app */,
-				EDCB01D71D47051200799A45 /* CarouselTests.xctest */,
-				EDCB01E21D47051200799A45 /* CarouselUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -159,42 +122,6 @@
 			productReference = EDCB01C31D47051200799A45 /* Carousel.app */;
 			productType = "com.apple.product-type.application";
 		};
-		EDCB01D61D47051200799A45 /* CarouselTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = EDCB01EE1D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselTests" */;
-			buildPhases = (
-				EDCB01D31D47051200799A45 /* Sources */,
-				EDCB01D41D47051200799A45 /* Frameworks */,
-				EDCB01D51D47051200799A45 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				EDCB01D91D47051200799A45 /* PBXTargetDependency */,
-			);
-			name = CarouselTests;
-			productName = CarouselTests;
-			productReference = EDCB01D71D47051200799A45 /* CarouselTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		EDCB01E11D47051200799A45 /* CarouselUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = EDCB01F11D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselUITests" */;
-			buildPhases = (
-				EDCB01DE1D47051200799A45 /* Sources */,
-				EDCB01DF1D47051200799A45 /* Frameworks */,
-				EDCB01E01D47051200799A45 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				EDCB01E41D47051200799A45 /* PBXTargetDependency */,
-			);
-			name = CarouselUITests;
-			productName = CarouselUITests;
-			productReference = EDCB01E21D47051200799A45 /* CarouselUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -209,18 +136,6 @@
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = HNF3479B3Z;
 						LastSwiftMigration = 0800;
-					};
-					EDCB01D61D47051200799A45 = {
-						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = HNF3479B3Z;
-						LastSwiftMigration = 0800;
-						TestTargetID = EDCB01C21D47051200799A45;
-					};
-					EDCB01E11D47051200799A45 = {
-						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = HNF3479B3Z;
-						LastSwiftMigration = 0800;
-						TestTargetID = EDCB01C21D47051200799A45;
 					};
 				};
 			};
@@ -238,8 +153,6 @@
 			projectRoot = "";
 			targets = (
 				EDCB01C21D47051200799A45 /* Carousel */,
-				EDCB01D61D47051200799A45 /* CarouselTests */,
-				EDCB01E11D47051200799A45 /* CarouselUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -252,20 +165,6 @@
 				EDCB01D11D47051200799A45 /* LaunchScreen.storyboard in Resources */,
 				EDCB01CE1D47051200799A45 /* Assets.xcassets in Resources */,
 				EDCB01CC1D47051200799A45 /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EDCB01D51D47051200799A45 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EDCB01E01D47051200799A45 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,36 +182,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		EDCB01D31D47051200799A45 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EDCB01DC1D47051200799A45 /* CarouselTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		EDCB01DE1D47051200799A45 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EDCB01E71D47051200799A45 /* CarouselUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		EDCB01D91D47051200799A45 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EDCB01C21D47051200799A45 /* Carousel */;
-			targetProxy = EDCB01D81D47051200799A45 /* PBXContainerItemProxy */;
-		};
-		EDCB01E41D47051200799A45 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EDCB01C21D47051200799A45 /* Carousel */;
-			targetProxy = EDCB01E31D47051200799A45 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		EDCB01CA1D47051200799A45 /* Main.storyboard */ = {
@@ -445,60 +315,6 @@
 			};
 			name = Release;
 		};
-		EDCB01EF1D47051200799A45 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = HNF3479B3Z;
-				INFOPLIST_FILE = CarouselTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Carousel.app/Carousel";
-			};
-			name = Debug;
-		};
-		EDCB01F01D47051200799A45 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = HNF3479B3Z;
-				INFOPLIST_FILE = CarouselTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Carousel.app/Carousel";
-			};
-			name = Release;
-		};
-		EDCB01F21D47051200799A45 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = HNF3479B3Z;
-				INFOPLIST_FILE = CarouselUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = Carousel;
-			};
-			name = Debug;
-		};
-		EDCB01F31D47051200799A45 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = HNF3479B3Z;
-				INFOPLIST_FILE = CarouselUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.CarouselUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
-				TEST_TARGET_NAME = Carousel;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -516,24 +332,6 @@
 			buildConfigurations = (
 				EDCB01EC1D47051200799A45 /* Debug */,
 				EDCB01ED1D47051200799A45 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		EDCB01EE1D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EDCB01EF1D47051200799A45 /* Debug */,
-				EDCB01F01D47051200799A45 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		EDCB01F11D47051200799A45 /* Build configuration list for PBXNativeTarget "CarouselUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EDCB01F21D47051200799A45 /* Debug */,
-				EDCB01F31D47051200799A45 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
