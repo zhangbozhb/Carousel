@@ -15,20 +15,20 @@ Pod::Spec.new do |s|
                        c, support Linear and Loop mode
                        DESC
 
-      s.homepage     = "https://github.com/zhangbozhb/Carousel"
+    s.homepage     = "https://github.com/zhangbozhb/Carousel"
 
 
-      s.license      = { :type => "MIT"}
+    s.license      = { :type => "MIT"}
 
-      s.author             = { "travel" => "zhangbozhb@gmail.com" }
-      s.social_media_url   = "http://twitter.com/travel_zh"
+    s.author             = { "travel" => "zhangbozhb@gmail.com" }
+    s.social_media_url   = "http://twitter.com/travel_zh"
 
-      s.ios.deployment_target = "8.0"
+    s.ios.deployment_target = "8.0"
 
-      s.source       = { :git => "https://github.com/zhangbozhb/Carousel.git", :tag => s.version }
+    s.source       = { :git => "https://github.com/zhangbozhb/Carousel.git", :tag => s.version }
 
 
-      s.source_files  = ["Sources/*.swift"]
-      s.exclude_files = "Sources/Exclude"
-
+    s.source_files  = ["Sources/*.swift"]
+    s.exclude_files = "Sources/Exclude"
+    s.pod_target_xcconfig = { 'SWIFT_VERSION' => '3.0' }
 end
