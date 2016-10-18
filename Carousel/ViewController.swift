@@ -119,5 +119,9 @@ class ViewController: UIViewController, CarouselViewDataSourse, CarouselViewDele
     func carousel(carousel: CarouselView, scrollFrom: Int, to: Int, progress: CGFloat) {
         print("CarouselView scrollFrom \(scrollFrom) \(to) \(progress)")
     }
+    
+    func carousel(carousel: CarouselView, didTapAt cell: Int) {
+        print("CarouselView didTapAt \(cell)")
+    }
 }
 
