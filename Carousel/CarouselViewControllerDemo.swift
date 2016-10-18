@@ -67,4 +67,8 @@ class CarouselViewControllerDemo: CarouselViewController, CarouselViewController
     func carousel(_ carousel: CarouselViewController, scrollFrom: Int, to: Int, progress: CGFloat) {
         print("CarouselViewController scrollFrom \(scrollFrom) \(to) \(progress)")
     }
+    
+    func carousel(_ carousel: CarouselViewController, didTapAt cell: Int) {
+        print("CarouselViewController didTapAt \(cell)")
+    }
 }

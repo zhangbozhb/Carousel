@@ -56,6 +56,9 @@ protocol CarouselDelegate:class {
     func carouselDidEndDecelerating()
     
     func carouselDidEndScrollingAnimation()
+    
+    
+    func carouselDidTap(cell:CarouselCell)
 }
 
 private func formatedInex(_ index:Int, ofCount count:Int) -> Int {
@@ -336,6 +339,8 @@ open class CarouselScrollView: UIScrollView {
     fileprivate var autoScrollTimer:Timer?
     fileprivate var autoScrollIncrease = true
     
+    fileprivate var tapGestureRecognizer:UITapGestureRecognizer?
+    
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -353,6 +358,9 @@ open class CarouselScrollView: UIScrollView {
         autoScrollTimer = nil
         _reusableCells.clear()
         _cells = []
+        if let tap = tapGestureRecognizer {
+            removeGestureRecognizer(tap)
+        }
     }
     
     fileprivate func baseInit() {
@@ -373,6 +381,11 @@ open class CarouselScrollView: UIScrollView {
         
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleNotifications(_:)), name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.handleNotifications(_:)), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
+        
+        let tap = UITapGestureRecognizer.init(target: self, action: #selector(self.handeTapGestureRecognizer(tap:)))
+        isUserInteractionEnabled = true
+        addGestureRecognizer(tap)
+        tapGestureRecognizer = tap
     }
     
     final func handleNotifications(_ notification:Notification) {
@@ -385,6 +398,16 @@ open class CarouselScrollView: UIScrollView {
             break
         default:
             break
+        }
+    }
+    
+    final func handeTapGestureRecognizer(tap:UITapGestureRecognizer) {
+        let pos = tap.location(in: self)
+        for cell in _cells {
+            if cell.view.frame.contains(pos) {
+                carouselDelegate?.carouselDidTap(cell: cell)
+                break
+            }
         }
     }
     
@@ -1296,6 +1319,15 @@ public protocol CarouselViewDataSourse:class {
     @objc optional func carouselDidEndDecelerating(_ carousel:CarouselView)
     
     @objc optional func carouselDidEndScrollingAnimation(_ carousel:CarouselView)
+    
+    
+    // MARK: select relate delegate
+    
+    /// did tap cell
+    ///
+    /// - parameter carousel: instance of CarouselView
+    /// - parameter cell:     cell index
+    @objc optional func carousel(_ carousel:CarouselView, didTapAt cell:Int)
 }
 
 
@@ -1361,6 +1393,13 @@ class CarouselDelegateForView:CarouselDelegate {
         delgate?.carousel?(carousel, didScrollFrom: from, to: to)
     }
     
+    // select
+    func carouselDidTap(cell: CarouselCell) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didTapAt: cell.index)
+    }
     
     func carouselDidScroll() {
         guard let carousel = carousel else {
@@ -1590,6 +1629,14 @@ public protocol CarouselViewControllerDataSourse:class {
     @objc optional func carouselDidEndDecelerating(_ carousel:CarouselViewController)
     
     @objc optional func carouselDidEndScrollingAnimation(_ carousel:CarouselViewController)
+    
+    // MARK: select relate delegate
+    
+    /// did tap cell
+    ///
+    /// - parameter carousel: instance of CarouselViewController
+    /// - parameter cell:     cell index
+    @objc optional func carousel(_ carousel:CarouselViewController, didTapAt cell:Int)
 }
 
 class CarouselCellForViewController:CarouselCell {
@@ -1693,6 +1740,14 @@ class CarouselDelegateForViewController:CarouselDelegate {
             return
         }
         delgate?.carousel?(carousel, didScrollFrom: from, to: to)
+    }
+    
+    // select
+    func carouselDidTap(cell: CarouselCell) {
+        guard let carousel = carousel else {
+            return
+        }
+        delgate?.carousel?(carousel, didTapAt: cell.index)
     }
     
     
