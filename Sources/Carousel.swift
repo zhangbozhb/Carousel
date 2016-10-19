@@ -471,6 +471,11 @@ open class CarouselScrollView: UIScrollView {
      update visible cell (add or remove cell if needed)
      */
     fileprivate func updateVisibleCell() {
+        // make sure view size not zero
+        guard !CGSize.zero.equalTo(frame.size) else {
+            return
+        }
+
         // update current cells layout
         updateCurrentCellsLayout()
         
