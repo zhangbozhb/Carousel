@@ -1963,6 +1963,21 @@ extension CarouselProtocol {
     }
 }
 
+// enable tap
+extension CarouselProtocol {
+    var isTapEnabled:Bool {
+        get {
+            return _carousel.isUserInteractionEnabled && (_carousel.tapGestureRecognizer?.isEnabled ?? false)
+        }
+        set {
+            if newValue {
+                _carousel.isUserInteractionEnabled = true
+            }
+            _carousel.tapGestureRecognizer?.isEnabled = newValue
+        }
+    }
+}
+
 
 // support auto scoll
 extension CarouselView: CarouselProtocol {
