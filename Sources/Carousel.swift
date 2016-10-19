@@ -1965,7 +1965,7 @@ extension CarouselProtocol {
 
 // enable tap
 extension CarouselProtocol {
-    var isTapEnabled:Bool {
+    public var isTapEnabled:Bool {
         get {
             return _carousel.isUserInteractionEnabled && (_carousel.tapGestureRecognizer?.isEnabled ?? false)
         }
