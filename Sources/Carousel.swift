@@ -1881,7 +1881,7 @@ public protocol CarouselProtocol {
 
 
 // usefull extension
-extension CarouselProtocol {
+public extension CarouselProtocol {
     public var visibleCells:[CarouselCell] {
         return _carousel.visibleCells
     }
@@ -1912,7 +1912,7 @@ extension CarouselProtocol {
 }
 
 // auto scoll
-extension CarouselProtocol {
+public extension CarouselProtocol {
     /**
      auto scroll
      default auto scroll is disable
@@ -1945,7 +1945,7 @@ extension CarouselProtocol {
 }
 
 // add reload relative method
-extension CarouselProtocol {
+public extension CarouselProtocol {
     public func reload() {
         _carousel.reload()
     }
@@ -1964,7 +1964,7 @@ extension CarouselProtocol {
 }
 
 // enable tap
-extension CarouselProtocol {
+public extension CarouselProtocol {
     public var isTapEnabled:Bool {
         get {
             return _carousel.isUserInteractionEnabled && (_carousel.tapGestureRecognizer?.isEnabled ?? false)

@@ -134,7 +134,7 @@
 				TargetAttributes = {
 					EDCB01C21D47051200799A45 = {
 						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = HNF3479B3Z;
+						DevelopmentTeam = SWM5MN65PP;
 						LastSwiftMigration = 0800;
 					};
 				};
@@ -293,7 +293,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = HNF3479B3Z;
+				DEVELOPMENT_TEAM = SWM5MN65PP;
 				INFOPLIST_FILE = Carousel/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.Carousel;
@@ -306,7 +306,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = HNF3479B3Z;
+				DEVELOPMENT_TEAM = SWM5MN65PP;
 				INFOPLIST_FILE = Carousel/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.undefined.Carousel;
