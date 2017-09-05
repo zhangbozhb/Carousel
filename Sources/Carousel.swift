@@ -564,7 +564,7 @@ extension CarouselScrollView {
         case .horizontal:
             if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLinear(_curFirstCellIndex).maxX || contentOffset.x < frameLinear(_curFirstCellIndex - 1).minX {
                 if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScroll(from: _curFirstCellIndex, to: first.rawIndex)
+                    carouselDidScroll(from: formatedInex(_curFirstCellIndex, ofCount: first.count) , to: formatedInex(first.rawIndex, ofCount: first.count))
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -572,7 +572,7 @@ extension CarouselScrollView {
         case .vertical:
             if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLinear(_curFirstCellIndex).maxY || contentOffset.y < frameLinear(_curFirstCellIndex - 1).minY {
                 if first.rawIndex != _curFirstCellIndex {
-                    carouselDidScroll(from: _curFirstCellIndex, to: first.rawIndex)
+                    carouselDidScroll(from: formatedInex(_curFirstCellIndex, ofCount: first.count) , to: formatedInex(first.rawIndex, ofCount: first.count))
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -582,10 +582,10 @@ extension CarouselScrollView {
         switch direction {
         case .horizontal:
             let progress = contentOffset.x / cellWidth - CGFloat(_curFirstCellIndex)
-            carouselScroll(from: _curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1 , progress: progress)
+            carouselScroll(from: formatedInex(_curFirstCellIndex, ofCount: first.count), to: formatedInex(progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, ofCount: first.count) , progress: progress)
         case .vertical:
             let progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex)
-            carouselScroll(from: _curFirstCellIndex, to: progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, progress: progress)
+            carouselScroll(from: formatedInex(_curFirstCellIndex, ofCount: first.count), to: formatedInex(progress > 0 ? _curFirstCellIndex + 1 : _curFirstCellIndex - 1, ofCount: first.count), progress: progress)
         }
     }
     
@@ -703,7 +703,9 @@ extension CarouselScrollView {
             if abs(first.view.frame.minX - contentOffset.x) < threshold || contentOffset.x > frameLoop(_curFirstCellIndex).maxX || contentOffset.x < frameLoop(_curFirstCellIndex - 1).minX {
                 if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
                     let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-                    carouselDidScroll(from: _curFirstCellIndex - offset, to: first.rawIndex - offset)
+                    let from = formatedInex(_curFirstCellIndex - offset, ofCount: first.count)
+                    let to = formatedInex(first.rawIndex - offset, ofCount: first.count)
+                    carouselDidScroll(from: from, to: to)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -712,7 +714,9 @@ extension CarouselScrollView {
             if abs(first.view.frame.minY - contentOffset.y) < threshold || contentOffset.y > frameLoop(_curFirstCellIndex).maxY || contentOffset.y < frameLoop(_curFirstCellIndex - 1).minY {
                 if first.rawIndex != _curFirstCellIndex && first.index != formatedInex(_curFirstCellIndex, ofCount: first.count) {
                     let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-                    carouselDidScroll(from: _curFirstCellIndex - offset, to: first.rawIndex - offset)
+                    let from = formatedInex(_curFirstCellIndex - offset, ofCount: first.count)
+                    let to = formatedInex(first.rawIndex - offset, ofCount: first.count)
+                    carouselDidScroll(from: from, to: to)
                     _curFirstCellIndex = first.rawIndex
                 }
                 return
@@ -727,7 +731,11 @@ extension CarouselScrollView {
             progress = contentOffset.y / cellHeight - CGFloat(_curFirstCellIndex + _offsetCellIndex)
         }
         let offset = _curFirstCellIndex - formatedInex(_curFirstCellIndex, ofCount: first.count)
-        carouselScroll(from: _curFirstCellIndex - offset, to: progress > 0 ? _curFirstCellIndex + 1 - offset: _curFirstCellIndex - 1 - offset, progress: progress)
+        var from = _curFirstCellIndex - offset
+        var to = progress > 0 ? _curFirstCellIndex + 1 - offset: _curFirstCellIndex - 1 - offset
+        from =  formatedInex(from, ofCount: first.count)
+        to =  formatedInex(to, ofCount: first.count)
+        carouselScroll(from: from, to: to, progress: progress)
     }
     
     fileprivate func updateContentOffsetLoop() {
