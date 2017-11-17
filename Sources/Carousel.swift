@@ -388,7 +388,7 @@ open class CarouselScrollView: UIScrollView {
         tapGestureRecognizer = tap
     }
     
-    final func handleNotifications(_ notification:Notification) {
+    @objc final func handleNotifications(_ notification:Notification) {
         switch notification.name {
         case NSNotification.Name.UIApplicationDidBecomeActive:
             resumeAutoScroll()
@@ -401,7 +401,7 @@ open class CarouselScrollView: UIScrollView {
         }
     }
     
-    final func handeTapGestureRecognizer(tap:UITapGestureRecognizer) {
+    @objc final func handeTapGestureRecognizer(tap:UITapGestureRecognizer) {
         let pos = tap.location(in: self)
         for cell in _cells {
             if cell.view.frame.contains(pos) {
@@ -1117,11 +1117,11 @@ extension CarouselScrollView {
 
 // support auto scoll
 public extension CarouselScrollView {
-    func autoScrollToNext() {
+    @objc func autoScrollToNext() {
         nextCell(true)
     }
     
-    func autoScrollToPre() {
+    @objc func autoScrollToPre() {
         preNext(true)
     }
     
