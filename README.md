@@ -7,6 +7,13 @@
 [![License: MIT](http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/jiecao-fm/SwiftTheme/blob/master/LICENSE)
 
 
+
+# Deprecated
+This implement is not that good and there are some much to improve. Thought ideas in mind, time to make it come true really is a problem. Sorry to everyone interest in this lib. 项目当前处于废弃状态，这个实现是很久之前最简单的实现，有很大的改进空间，关于如何改进有一些想法，但是确实是没有时间去实现。不好意思啊
+
+
+
+
 ###ScreenShots
 ![CarouselSwift](https://github.com/zhangbozhb/Carousel/blob/master/screenshots_1.gif)
 
